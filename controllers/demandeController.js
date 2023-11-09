@@ -56,11 +56,12 @@ const sendCodeConfirmation = async (req, res) => {
       await db
     ).query("INSERT INTO codes (email, code) VALUES (?, ?)", [email, code]);
     const info = await transporter.sendMail({
-      from: "Médical",
+      from: process.env.SMTP_USER,
       to: email,
       subject: "Code de confirmation",
       text: `Votre code de confirmation est ${code}`,
     });
+    console.log(info);
     res.send({
       message: "Code envoyé avec succès",
     });
@@ -124,7 +125,7 @@ const deleteOne = async (req, res) => {
   try {
     const id = req.params.id;
     const [rows, fields] = await (
-      await _db.default
+      await db
     ).query("DELETE FROM demandes WHERE id = ?", [id]);
     res.send({
       message: "Demande supprimée avec succès",
@@ -147,7 +148,7 @@ const deleteMine = async (req, res) => {
       });
     }
     const [rows, fields] = await (
-      await _db.default
+      await db
     ).query("DELETE FROM demandes WHERE id = ?", [decodedToken.id]);
     res.send({
       message: "Demande supprimée avec succès",

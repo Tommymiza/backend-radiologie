@@ -76,11 +76,14 @@ const deleteOne = async (req, res) => {
 const signup = async (req, res) => {
   try {
     const { nom, tel, email, password, rpps, role } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
     const [rows, fields] = await (
       await db
     ).query(
       "INSERT INTO users (nom, tel, email, password, rpps, role, is_verified) VALUES (?, ?, ?, ?, ?, ?, 0)",
-      [nom, tel, email, password, rpps, role]
+      [nom, tel, email, hashedPassword, rpps, role]
     );
     res.send({
       message: "Utilisateur créé avec succès",

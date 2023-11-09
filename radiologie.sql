@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : jeu. 09 nov. 2023 à 16:55
+-- Généré le : jeu. 09 nov. 2023 à 19:21
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS `messages` (
 DROP TABLE IF EXISTS `soustypes`;
 CREATE TABLE IF NOT EXISTS `soustypes` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `nom_sous_type` int NOT NULL,
+  `nom_sous_type` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;
 
@@ -105,14 +105,6 @@ CREATE TABLE IF NOT EXISTS `tokens` (
   KEY `id_user` (`id_user`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4;
 
---
--- Déchargement des données de la table `tokens`
---
-
-INSERT INTO `tokens` (`id`, `id_user`, `token`, `created_at`) VALUES
-(2, 1, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZGF0ZSI6MTY5OTU0MTE0MTU1NiwiaWF0IjoxNjk5NTQxMTQxfQ.M1DvtE6zoGqEZYqcvemznM7XeIDZloMQWY-Y5cyYu3s', '2023-11-09 14:45:41'),
-(3, 3, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiZGF0ZSI6MTY5OTU0MTUwNDUwNywiaWF0IjoxNjk5NTQxNTA0fQ.byHJaGHKtmOAdbfE969LxeDgTOHxUACYlHAUvUu-aPU', '2023-11-09 14:51:44');
-
 -- --------------------------------------------------------
 
 --
@@ -122,7 +114,7 @@ INSERT INTO `tokens` (`id`, `id_user`, `token`, `created_at`) VALUES
 DROP TABLE IF EXISTS `types`;
 CREATE TABLE IF NOT EXISTS `types` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `nom_type` int NOT NULL,
+  `nom_type` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;
 
@@ -142,7 +134,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `rpps` varchar(50) NOT NULL,
   `role` enum('admin','radiologue','medecin') NOT NULL,
   `is_verified` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4;
 
 --

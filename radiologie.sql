@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : jeu. 09 nov. 2023 à 19:21
+-- Généré le : ven. 10 nov. 2023 à 13:05
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -33,20 +33,28 @@ CREATE TABLE IF NOT EXISTS `codes` (
   `code` int NOT NULL,
   `email` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB AUTO_INCREMENT=2;
+
+--
+-- Déchargement des données de la table `codes`
+--
+
+INSERT INTO `codes` (`id`, `code`, `email`) VALUES
+(1, 845000, 'tommymiza6@gmail.com');
 
 -- --------------------------------------------------------
 
 --
--- Structure de la table `demande`
+-- Structure de la table `demandes`
 --
 
-DROP TABLE IF EXISTS `demande`;
-CREATE TABLE IF NOT EXISTS `demande` (
+DROP TABLE IF EXISTS `demandes`;
+CREATE TABLE IF NOT EXISTS `demandes` (
   `id` int NOT NULL AUTO_INCREMENT,
   `nom_patient` varchar(100) NOT NULL,
   `email` varchar(50) NOT NULL,
   `datenais` date NOT NULL,
+  `tel` varchar(20) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `rdv` date NOT NULL,
   `id_type` int NOT NULL,
@@ -87,7 +95,15 @@ CREATE TABLE IF NOT EXISTS `soustypes` (
   `id` int NOT NULL AUTO_INCREMENT,
   `nom_sous_type` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB AUTO_INCREMENT=3;
+
+--
+-- Déchargement des données de la table `soustypes`
+--
+
+INSERT INTO `soustypes` (`id`, `nom_sous_type`) VALUES
+(1, 'PIED'),
+(2, 'CHEVILLE');
 
 -- --------------------------------------------------------
 
@@ -103,7 +119,15 @@ CREATE TABLE IF NOT EXISTS `tokens` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `id_user` (`id_user`)
-) ENGINE=InnoDB AUTO_INCREMENT=4;
+) ENGINE=InnoDB AUTO_INCREMENT=6;
+
+--
+-- Déchargement des données de la table `tokens`
+--
+
+INSERT INTO `tokens` (`id`, `id_user`, `token`, `created_at`) VALUES
+(4, 1, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZGF0ZSI6MTY5OTYxOTM2ODY2MSwiaWF0IjoxNjk5NjE5MzY4fQ.x3FOQC8shjtgIvgM8bXVvN_nW0IKsS0yltmIndQK_4Q', '2023-11-10 12:29:28'),
+(5, 1, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZGF0ZSI6MTY5OTYxOTUxMTgwMCwiaWF0IjoxNjk5NjE5NTExfQ.b4BULkMgTpRYp-03AZ5DWWVe9W9br7gudpvIrdWF8XY', '2023-11-10 12:31:51');
 
 -- --------------------------------------------------------
 
@@ -116,7 +140,15 @@ CREATE TABLE IF NOT EXISTS `types` (
   `id` int NOT NULL AUTO_INCREMENT,
   `nom_type` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB AUTO_INCREMENT=4;
+
+--
+-- Déchargement des données de la table `types`
+--
+
+INSERT INTO `types` (`id`, `nom_type`) VALUES
+(2, 'TDM'),
+(3, 'IRM');
 
 -- --------------------------------------------------------
 
@@ -151,11 +183,11 @@ INSERT INTO `users` (`id`, `nom`, `tel`, `email`, `password`, `rpps`, `role`, `i
 --
 
 --
--- Contraintes pour la table `demande`
+-- Contraintes pour la table `demandes`
 --
-ALTER TABLE `demande`
-  ADD CONSTRAINT `demande_ibfk_1` FOREIGN KEY (`id_type`) REFERENCES `types` (`id`) ON DELETE RESTRICT,
-  ADD CONSTRAINT `demande_ibfk_2` FOREIGN KEY (`id_sous_type`) REFERENCES `soustypes` (`id`) ON DELETE RESTRICT;
+ALTER TABLE `demandes`
+  ADD CONSTRAINT `demandes_ibfk_1` FOREIGN KEY (`id_type`) REFERENCES `types` (`id`) ON DELETE RESTRICT,
+  ADD CONSTRAINT `demandes_ibfk_2` FOREIGN KEY (`id_sous_type`) REFERENCES `soustypes` (`id`) ON DELETE RESTRICT;
 
 --
 -- Contraintes pour la table `messages`

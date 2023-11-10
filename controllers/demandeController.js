@@ -8,6 +8,7 @@ const create = async (req, res) => {
       nom_patient,
       email,
       datenais,
+      tel,
       rdv,
       id_type,
       id_sous_type,
@@ -33,8 +34,8 @@ const create = async (req, res) => {
     const [rows, fields] = await (
       await db
     ).query(
-      "INSERT INTO demandes (nom_patient, email, datenais, rdv, id_type, id_sous_type, id_medecin) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [nom_patient, email, datenais, rdv, id_type, id_sous_type, id_medecin]
+      "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_sous_type, id_medecin) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [nom_patient, email, datenais, tel, rdv, id_type, id_sous_type, id_medecin]
     );
     res.send({
       message: "Demande ajoutée avec succès",
@@ -61,7 +62,6 @@ const sendCodeConfirmation = async (req, res) => {
       subject: "Code de confirmation",
       text: `Votre code de confirmation est ${code}`,
     });
-    console.log(info);
     res.send({
       message: "Code envoyé avec succès",
     });

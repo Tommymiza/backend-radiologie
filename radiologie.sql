@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `demandes` (
   `datenais` date NOT NULL,
   `tel` varchar(20) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `rdv` date NOT NULL,
+  `rdv` date DEFAULT NULL,
   `id_type` int NOT NULL,
   `id_sous_type` int NOT NULL,
   `status` enum('non pris','pris') NOT NULL DEFAULT 'non pris',

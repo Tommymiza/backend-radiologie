@@ -34,7 +34,7 @@ const create = async (req, res) => {
     const [rows, fields] = await (
       await db
     ).query(
-      "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_sous_type, id_medecin) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_sous_type, id_medecin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       [nom_patient, email, datenais, tel, rdv, id_type, id_sous_type, id_medecin]
     );
     res.send({

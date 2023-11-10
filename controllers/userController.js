@@ -75,22 +75,27 @@ const deleteOne = async (req, res) => {
 
 const signup = async (req, res) => {
   try {
-    const { nom, tel, email, password, rpps, role } = req.body;
-
+    const { nom, tel, adresse, email, password, rpps } = req.body;
+    console.log(req.body)
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const [rows, fields] = await (
       await db
     ).query(
-      "INSERT INTO users (nom, tel, email, password, rpps, role, is_verified) VALUES (?, ?, ?, ?, ?, ?, 0)",
-      [nom, tel, email, hashedPassword, rpps, role]
+      "INSERT INTO users (nom, tel, adresse, email, password, rpps, role, is_verified) VALUES (?, ?, ?, ?, ?, ?, 'Medecin', 0)",
+      [nom, tel, adresse, email, hashedPassword, rpps]
     );
-    res.send({
-      message: "Utilisateur créé avec succès",
+    return res.send({
+      message: "Compte créé, en attente de vérification",
     });
   } catch (err) {
     console.log(err);
-    res.status(500).send({
+    if(err.errno === 1062){
+      return res.status(500).send({
+        error: "L'email existe déjà",
+      });
+    }
+    return res.status(500).send({
       error: "Erreur lors de la création de l'utilisateur",
     });
   }

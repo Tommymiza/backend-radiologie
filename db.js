@@ -6,9 +6,10 @@ const db = mysql.createConnection({
     database: process.env.DB_NAME,
     connectTimeout: 10000,
     waitForConnections: true,
-    connectionLimit: 100,
-    multipleStatements: true,
     debug: true,
+    ssl: {
+        rejectUnauthorized: true,
+    },
 });
 
 module.exports = db;

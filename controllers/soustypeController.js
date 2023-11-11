@@ -5,14 +5,20 @@ const create = async (req, res) => {
     const { nom } = req.body;
 
     //insertion dans la base de données
-    const [rows, fields] = await (
-      await db
-    ).query("INSERT INTO soustypes (nom_sous_type) VALUES (?)", [nom]);
-
-    //envoi de la réponse
-    res.send({
-      message: "Sous type créé avec succès",
-    });
+    db.query(
+      "INSERT INTO soustypes (nom_sous_type) VALUES (?)",
+      [nom],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            error: "Erreur lors de la création du sous type",
+          });
+        }
+        res.send({
+          message: "Sous type créé avec succès",
+        });
+      }
+    );
   } catch (err) {
     console.log(err);
     res.status(500).send({
@@ -25,14 +31,20 @@ const updateOne = async (req, res) => {
   try {
     const { id, nom } = req.body;
 
-    const [rows, fields] = await (
-      await db
-    ).query("UPDATE soustypes SET nom_sous_type = ? WHERE id = ?", [nom, id]);
-
-    // Envoi de la réponse
-    res.send({
-      message: "Sous type modifié avec succès",
-    });
+    db.query(
+      "UPDATE soustypes SET nom_sous_type = ? WHERE id = ?",
+      [nom, id],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            error: "Erreur lors de la modification du sous type",
+          });
+        }
+        res.send({
+          message: "Sous type modifié avec succès",
+        });
+      }
+    );
   } catch (err) {
     console.log(err);
     res.status(500).send({
@@ -44,15 +56,16 @@ const updateOne = async (req, res) => {
 const deleteOne = async (req, res) => {
   try {
     const id = req.params.id;
-
     // Suppression du sous type
-    const [rows, fields] = await (
-      await db
-    ).query("DELETE FROM soustypes WHERE id = ?", [id]);
-
-    // Envoi de la réponse
-    res.send({
-      message: "Sous type supprimé avec succès",
+    db.query("DELETE FROM soustypes WHERE id = ?", [id], (err, result) => {
+      if (err) {
+        return res.status(500).json({
+          error: "Erreur lors de la suppression du sous type",
+        });
+      }
+      res.send({
+        message: "Sous type supprimé avec succès",
+      });
     });
   } catch (err) {
     console.log(err);
@@ -64,12 +77,18 @@ const deleteOne = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const [rows, fields] = await (await db).query("SELECT * FROM soustypes");
-    res.send({
-      soustypes: rows,
+    db.query("SELECT * FROM soustypes", (err, rows) => {
+      if (err) {
+        return res.status(500).json({
+          error: "Erreur lors de la récupération des sous types",
+        });
+      }
+      res.send({
+        soustypes: rows,
+      });
     });
   } catch (error) {
-    console.log(err);
+    console.log(error);
     res.status(500).send({
       error: "Erreur lors de la récupération des sous types",
     });

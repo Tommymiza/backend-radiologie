@@ -46,13 +46,15 @@ const deleteOne = async (req, res) => {
     const id = req.params.id;
 
     // Suppression du sous type
-    const [rows, fields] = await (
-      await db
-    ).query("DELETE FROM types WHERE id = ?", [id]);
-
-    // Envoi de la réponse
-    res.send({
-      message: "Type supprimé avec succès",
+    db.query("DELETE FROM types WHERE id = ?", [id], (err, result) => {
+      if (err) {
+        return res.status(500).json({
+          error: "Erreur lors de la suppression du type",
+        });
+      }
+      res.send({
+        message: "Type supprimé avec succès",
+      });
     });
   } catch (err) {
     console.log(err);
@@ -64,12 +66,18 @@ const deleteOne = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const [rows, fields] = await (await db).query("SELECT * FROM types");
-    res.send({
-      types: rows,
+    db.query("SELECT * FROM types", (err, rows) => {
+      if (err) {
+        return res.status(500).json({
+          error: "Erreur lors de la récupération des types",
+        });
+      }
+      res.send({
+        types: rows,
+      });
     });
   } catch (error) {
-    console.log(err);
+    console.log(error);
     res.status(500).send({
       error: "Erreur lors de la récupération des types",
     });

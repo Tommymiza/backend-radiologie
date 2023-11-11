@@ -17,53 +17,69 @@ const create = async (req, res) => {
       code,
     } = req.body;
     if (!id_medecin) {
-      const [row, field] = await (
-        await db
-      ).query("SELECT code FROM codes WHERE email = ? AND code = ?", [
-        email,
-        code,
-      ]);
-      if (row.length === 0) {
-        return res.status(401).json({
-          error: "Code invalide",
-        });
-      }
-      await (
-        await db
-      ).query("DELETE FROM codes WHERE email = ? AND code = ?", [email, code]);
-    }
-    const [rows, fields] = await (
-      await db
-    ).query(
-      "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_sous_type, id_medecin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        nom_patient,
-        email,
-        datenais,
-        tel,
-        rdv,
-        id_type,
-        id_sous_type,
-        id_medecin,
-      ]
-    );
-    const linktoken = jwt.sign({ id: rows.insertId }, process.env.JWT_SECRET);
-    const info = await transporter.sendMail({
-      from: process.env.SMTP_USER,
-      to: email,
-      subject: "Demande radiologie",
-      html: `
+      const [row, field] = db.query(
+        "SELECT code FROM codes WHERE email = ? AND code = ?",
+        [email, code],
+        (err, result) => {
+          if (err || result.length === 0) {
+            return res.status(401).json({
+              error: "Code invalide",
+            });
+          }
+          db.query(
+            "DELETE FROM codes WHERE email = ? AND code = ?",
+            [email, code],
+            (err1, result1) => {
+              if (err1) {
+                return res.status(500).json({
+                  error: "Erreur lors de la suppression du code",
+                });
+              }
+            }
+          );
+          db.query(
+            "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_sous_type, id_medecin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+              nom_patient,
+              email,
+              datenais,
+              tel,
+              rdv,
+              id_type,
+              id_sous_type,
+              id_medecin,
+            ],
+            async (err2, result2) => {
+              if (err2) {
+                return res.status(500).json({
+                  error: "Erreur lors de la création de la demande",
+                });
+              }
+              const linktoken = jwt.sign(
+                { id: result2.insertId },
+                process.env.JWT_SECRET
+              );
+              const info = await transporter.sendMail({
+                from: process.env.SMTP_USER,
+                to: email,
+                subject: "Demande radiologie",
+                html: `
         <p>Bonjour ${nom_patient},</p>
         <p>Votre demande de rendez-vous a été prise en compte.</p>
         <p>Vous recevrez un email de confirmation dès qu'un médecin aura pris en charge votre demande.</p>
         <p>Si vous voulez supprimer la demande, veuillez cliquez sur ce bouton</p>
         <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a>
       `,
-    });
-    res.send({
-      message: "Demande ajoutée avec succès",
-      id: rows.insertId,
-    });
+              });
+              res.send({
+                message: "Demande ajoutée avec succès",
+                id: result2.insertId,
+              });
+            }
+          );
+        }
+      );
+    }
   } catch (err) {
     console.log(err);
     res.status(500).send({
@@ -81,9 +97,7 @@ const deleteFromEmail = async (req, res) => {
         error: "Requête invalide !",
       });
     }
-    const [rows, fields] = await (
-      await db
-    ).query("DELETE FROM demandes WHERE id = ?", [decodedToken.id]);
+    db.query("DELETE FROM demandes WHERE id = ?", [decodedToken.id]);
     res.sendFile(path.join(__dirname, "../views/deleteDemande.html"));
   } catch (error) {
     console.log(error);
@@ -97,18 +111,26 @@ const sendCodeConfirmation = async (req, res) => {
   try {
     const { email } = req.body;
     const code = Math.floor(Math.random() * 1000000);
-    const [rows, fields] = await (
-      await db
-    ).query("INSERT INTO codes (email, code) VALUES (?, ?)", [email, code]);
-    const info = await transporter.sendMail({
-      from: process.env.SMTP_USER,
-      to: email,
-      subject: "Code de confirmation",
-      text: `Votre code de confirmation est ${code}`,
-    });
-    res.send({
-      message: "Code envoyé avec succès",
-    });
+    db.query(
+      "INSERT INTO codes (email, code) VALUES (?, ?)",
+      [email, code],
+      async (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            error: "Erreur lors de la création du code",
+          });
+        }
+        const info = await transporter.sendMail({
+          from: process.env.SMTP_USER,
+          to: email,
+          subject: "Code de confirmation",
+          text: `Votre code de confirmation est ${code}`,
+        });
+        res.send({
+          message: "Code envoyé avec succès",
+        });
+      }
+    );
   } catch (err) {
     console.log(err);
     res.status(500).send({
@@ -119,14 +141,19 @@ const sendCodeConfirmation = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const [rows, fields] = await (
-      await db
-    ).query(
-      "SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, status, id_medecin, nom_type, nom_sous_type FROM demandes, types, soustypes WHERE demandes.id_type = types.id AND demandes.id_sous_type = soustypes.id"
+    db.query(
+      "SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, status, id_medecin, nom_type, nom_sous_type FROM demandes, types, soustypes WHERE demandes.id_type = types.id AND demandes.id_sous_type = soustypes.id",
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            error: "Erreur lors de la récupération des demandes",
+          });
+        }
+        res.send({
+          demandes: result,
+        });
+      }
     );
-    res.send({
-      demandes: rows,
-    });
   } catch (err) {
     console.log(err);
     res.status(500).send({
@@ -138,12 +165,20 @@ const getAll = async (req, res) => {
 const changeStatus = async (req, res) => {
   try {
     const { id, status } = req.body;
-    const [rows, fields] = await (
-      await db
-    ).query("UPDATE demandes SET status = 'pris' WHERE id = ?", [status, id]);
-    res.send({
-      message: "Statut modifié avec succès",
-    });
+    db.query(
+      "UPDATE demandes SET status = 'pris' WHERE id = ?",
+      [status, id],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            error: "Erreur lors de la modification du statut",
+          });
+        }
+        res.send({
+          message: "Statut modifié avec succès",
+        });
+      }
+    );
   } catch (err) {
     console.log(err);
     res.status(500).send({
@@ -155,11 +190,15 @@ const changeStatus = async (req, res) => {
 const deleteOne = async (req, res) => {
   try {
     const id = req.params.id;
-    const [rows, fields] = await (
-      await db
-    ).query("DELETE FROM demandes WHERE id = ?", [id]);
-    res.send({
-      message: "Demande supprimée avec succès",
+    db.query("DELETE FROM demandes WHERE id = ?", [id], (err, result) => {
+      if (err) {
+        return res.status(500).json({
+          error: "Erreur lors de la suppression de la demande",
+        });
+      }
+      res.send({
+        message: "Demande supprimée avec succès",
+      });
     });
   } catch (err) {
     console.log(err);
@@ -178,12 +217,20 @@ const deleteMine = async (req, res) => {
         error: "Requête invalide !",
       });
     }
-    const [rows, fields] = await (
-      await db
-    ).query("DELETE FROM demandes WHERE id = ?", [decodedToken.id]);
-    res.send({
-      message: "Demande supprimée avec succès",
-    });
+    db.query(
+      "DELETE FROM demandes WHERE id = ?",
+      [decodedToken.id],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            error: "Erreur lors de la suppression de la demande",
+          });
+        }
+        res.send({
+          message: "Demande supprimée avec succès",
+        });
+      }
+    );
   } catch (err) {
     console.log(err);
     res.status(500).send({

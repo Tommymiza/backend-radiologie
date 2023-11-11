@@ -16,8 +16,9 @@ const create = async (req, res) => {
       id_medecin,
       code,
     } = req.body;
+    console.log(req.body)
     if (!id_medecin) {
-      const [row, field] = db.query(
+      db.query(
         "SELECT code FROM codes WHERE email = ? AND code = ?",
         [email, code],
         (err, result) => {
@@ -92,6 +93,7 @@ const deleteFromEmail = async (req, res) => {
   try {
     const token = req.query.token;
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decodedToken)
     if (!decodedToken) {
       return res.status(401).json({
         error: "Requête invalide !",
@@ -111,6 +113,7 @@ const sendCodeConfirmation = async (req, res) => {
   try {
     const { email } = req.body;
     const code = Math.floor(Math.random() * 1000000);
+    console.log(code);
     db.query(
       "INSERT INTO codes (email, code) VALUES (?, ?)",
       [email, code],
@@ -126,7 +129,7 @@ const sendCodeConfirmation = async (req, res) => {
           subject: "Code de confirmation",
           text: `Votre code de confirmation est ${code}`,
         });
-        res.send({
+        return res.send({
           message: "Code envoyé avec succès",
         });
       }
@@ -149,7 +152,7 @@ const getAll = async (req, res) => {
             error: "Erreur lors de la récupération des demandes",
           });
         }
-        res.send({
+        return res.send({
           demandes: result,
         });
       }

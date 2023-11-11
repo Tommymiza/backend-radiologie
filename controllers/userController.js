@@ -16,7 +16,6 @@ const create = async (req, res) => {
       "INSERT INTO users (nom, tel, email, password, rpps, role, is_verified) VALUES (?, ?, ?, ?, ?, ?, 1)",
       [nom, tel, email, hashedPassword, rpps, role]
     );
-
     //envoi de la réponse
     res.send({
       message: "Utilisateur créé avec succès",
@@ -212,7 +211,7 @@ const checkConnectedUser = async (req, res) => {
     const [rows, fields] = await (
       await db
     ).query(
-      "Select * From users, tokens Where users.id = tokens.id_user AND tokens.token = ?",
+      "Select users.* From users, tokens Where users.id = tokens.id_user AND tokens.token = ?",
       [token]
     );
     if (rows.length === 0) {
@@ -227,13 +226,20 @@ const checkConnectedUser = async (req, res) => {
         error: "L'utilisateur n'a pas le bon rôle",
       });
     }
-
+    let demandes = [];
+    if(role === "medecin"){
+      const [result, f] = await (
+        await db
+      ).query("SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, status, id_medecin, nom_type, nom_sous_type FROM demandes, types, soustypes WHERE demandes.id_type = types.id AND demandes.id_sous_type = soustypes.id AND id_medecin = ?", [rows[0].id]);
+      demandes = result;
+    }
     const user = rows[0];
     delete user.password;
 
     // Envoi de la réponse
     res.send({
       user,
+      demandes,
     });
   } catch (err) {
     console.log(err);

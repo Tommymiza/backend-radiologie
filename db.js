@@ -14,6 +14,7 @@ const db = mysql.createConnection({
     idle: 10000,
   },
   port: 3306,
+  debug: true,
 });
 
 module.exports = db;

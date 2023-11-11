@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : ven. 10 nov. 2023 à 13:05
+-- Généré le : sam. 11 nov. 2023 à 05:46
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -33,14 +33,7 @@ CREATE TABLE IF NOT EXISTS `codes` (
   `code` int NOT NULL,
   `email` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2;
-
---
--- Déchargement des données de la table `codes`
---
-
-INSERT INTO `codes` (`id`, `code`, `email`) VALUES
-(1, 845000, 'tommymiza6@gmail.com');
+) ENGINE=InnoDB AUTO_INCREMENT=17;
 
 -- --------------------------------------------------------
 
@@ -64,7 +57,7 @@ CREATE TABLE IF NOT EXISTS `demandes` (
   PRIMARY KEY (`id`),
   KEY `id_type` (`id_type`,`id_sous_type`),
   KEY `id_sous_type` (`id_sous_type`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB AUTO_INCREMENT=11;
 
 -- --------------------------------------------------------
 
@@ -119,15 +112,7 @@ CREATE TABLE IF NOT EXISTS `tokens` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `id_user` (`id_user`)
-) ENGINE=InnoDB AUTO_INCREMENT=6;
-
---
--- Déchargement des données de la table `tokens`
---
-
-INSERT INTO `tokens` (`id`, `id_user`, `token`, `created_at`) VALUES
-(4, 1, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZGF0ZSI6MTY5OTYxOTM2ODY2MSwiaWF0IjoxNjk5NjE5MzY4fQ.x3FOQC8shjtgIvgM8bXVvN_nW0IKsS0yltmIndQK_4Q', '2023-11-10 12:29:28'),
-(5, 1, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZGF0ZSI6MTY5OTYxOTUxMTgwMCwiaWF0IjoxNjk5NjE5NTExfQ.b4BULkMgTpRYp-03AZ5DWWVe9W9br7gudpvIrdWF8XY', '2023-11-10 12:31:51');
+) ENGINE=InnoDB AUTO_INCREMENT=23;
 
 -- --------------------------------------------------------
 
@@ -140,7 +125,7 @@ CREATE TABLE IF NOT EXISTS `types` (
   `id` int NOT NULL AUTO_INCREMENT,
   `nom_type` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4;
+) ENGINE=InnoDB AUTO_INCREMENT=6;
 
 --
 -- Déchargement des données de la table `types`
@@ -148,7 +133,8 @@ CREATE TABLE IF NOT EXISTS `types` (
 
 INSERT INTO `types` (`id`, `nom_type`) VALUES
 (2, 'TDM'),
-(3, 'IRM');
+(3, 'IRM'),
+(5, 'ECHO');
 
 -- --------------------------------------------------------
 
@@ -161,6 +147,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `nom` varchar(100) NOT NULL,
   `tel` varchar(20) NOT NULL,
+  `adresse` varchar(50) DEFAULT NULL,
   `email` varchar(50) NOT NULL,
   `password` text NOT NULL,
   `rpps` varchar(50) NOT NULL,
@@ -168,15 +155,15 @@ CREATE TABLE IF NOT EXISTS `users` (
   `is_verified` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=4;
+) ENGINE=InnoDB AUTO_INCREMENT=14;
 
 --
 -- Déchargement des données de la table `users`
 --
 
-INSERT INTO `users` (`id`, `nom`, `tel`, `email`, `password`, `rpps`, `role`, `is_verified`) VALUES
-(1, 'Tommy', '0344824468', 'tommymiza20@gmail.com', '$2b$10$srkZ0csYhp7MfHsqS5eHTuDsthS1rchw2AgYedfaQ1JAS5DQ1rPjK', '0315225422', 'admin', 1),
-(3, 'Tommy Miza', '0336350015', 'tommymiza6@gmail.com', '$2b$10$mWcXd8bP1Fcudz65nt3RQua4fzk9dfssJphBssn9BY.2seUIPGzb2', '0315225512', 'radiologue', 1);
+INSERT INTO `users` (`id`, `nom`, `tel`, `adresse`, `email`, `password`, `rpps`, `role`, `is_verified`) VALUES
+(1, 'Tommy', '0344824468', 'Tanambao', 'tommymiza20@gmail.com', '$2b$10$srkZ0csYhp7MfHsqS5eHTuDsthS1rchw2AgYedfaQ1JAS5DQ1rPjK', '0315225422', 'admin', 1),
+(12, 'Tommy Miza', '0336350015', 'Tanambao', 'tommymiza6@gmail.com', '$2b$10$v6hTYMu5ckODoOJ/pKMANujd1z1gvCgdezXaEXkbQHcnNoAKPQ6jO', '255222', 'medecin', 1);
 
 --
 -- Contraintes pour les tables déchargées

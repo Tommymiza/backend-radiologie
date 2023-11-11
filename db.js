@@ -8,10 +8,7 @@ const db = mysql.createConnection({
     waitForConnections: true,
     connectionLimit: 100,
     multipleStatements: true,
-    idleTimeout: 10000,
-    maxIdle: 10000,
     debug: true,
-    maxPreparedStatements: 100,
 });
 
 module.exports = db;

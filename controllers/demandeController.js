@@ -16,7 +16,7 @@ const create = async (req, res) => {
       id_medecin,
       code,
     } = req.body;
-    console.log(req.body)
+    console.log(req.body);
     if (!id_medecin) {
       db.query(
         "SELECT code FROM codes WHERE email = ? AND code = ?",
@@ -80,6 +80,47 @@ const create = async (req, res) => {
           );
         }
       );
+    } else {
+      db.query(
+        "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_sous_type, id_medecin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+          nom_patient,
+          email,
+          datenais,
+          tel,
+          rdv,
+          id_type,
+          id_sous_type,
+          id_medecin,
+        ],
+        async (err2, result2) => {
+          if (err2) {
+            return res.status(500).json({
+              error: "Erreur lors de la création de la demande",
+            });
+          }
+          const linktoken = jwt.sign(
+            { id: result2.insertId },
+            process.env.JWT_SECRET
+          );
+          const info = await transporter.sendMail({
+            from: process.env.SMTP_USER,
+            to: email,
+            subject: "Demande radiologie",
+            html: `
+    <p>Bonjour ${nom_patient},</p>
+    <p>Votre demande de rendez-vous a été prise en compte.</p>
+    <p>Vous recevrez un email de confirmation dès qu'un médecin aura pris en charge votre demande.</p>
+    <p>Si vous voulez supprimer la demande, veuillez cliquez sur ce bouton</p>
+    <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a>
+  `,
+          });
+          res.send({
+            message: "Demande ajoutée avec succès",
+            id: result2.insertId,
+          });
+        }
+      );
     }
   } catch (err) {
     console.log(err);
@@ -93,7 +134,7 @@ const deleteFromEmail = async (req, res) => {
   try {
     const token = req.query.token;
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decodedToken)
+    console.log(decodedToken);
     if (!decodedToken) {
       return res.status(401).json({
         error: "Requête invalide !",

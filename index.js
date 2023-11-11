@@ -6,7 +6,10 @@ const globalRoutes = require("./routes/index.routes");
 const app = express();
 
 // Importation des middlewares
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
+}));
 app.use(require("./middlewares/bodyparser"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

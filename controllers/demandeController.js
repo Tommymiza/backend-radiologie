@@ -210,7 +210,7 @@ const changeStatus = async (req, res) => {
   try {
     const { id, status } = req.body;
     db.query(
-      "UPDATE demandes SET status = 'pris' WHERE id = ?",
+      "UPDATE demandes SET status = ? WHERE id = ?",
       [status, id],
       (err, result) => {
         if (err) {

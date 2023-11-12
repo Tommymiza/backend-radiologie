@@ -4,17 +4,18 @@ const jwt = require("jsonwebtoken");
 
 const create = async (req, res) => {
   try {
-    const { nom, tel, email, password, rpps, role } = req.body;
+    const { nom, tel, email, adresse, password, rpps, role } = req.body;
     //hashage du mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
     //insertion dans la base de données
     db.query(
-      "INSERT INTO users (nom, tel, email, password, rpps, role, is_verified) VALUES (?, ?, ?, ?, ?, ?, 1)",
-      [nom, tel, email, hashedPassword, rpps, role],
+      "INSERT INTO users (nom, tel, email, password,adresse, rpps, role, is_verified) VALUES (?, ?, ?, ?, ?,?, ?, 1)",
+      [nom, tel, email, hashedPassword, adresse, rpps, role],
       (err, result) => {
         if (err) {
           return res.status(500).json({
             error: "Erreur lors de la création de l'utilisateur",
+            result: err,
           });
         }
         return res.send({
@@ -32,11 +33,11 @@ const create = async (req, res) => {
 
 const updateOne = async (req, res) => {
   try {
-    const { id, nom, tel, rpps, role } = req.body;
+    const { id, nom, adresse, tel, rpps, role } = req.body;
 
     db.query(
-      "UPDATE users SET nom = ?, tel = ?, rpps = ?, role = ? WHERE id = ?",
-      [nom, tel, rpps, role, id],
+      "UPDATE users SET nom = ?, tel = ?, adresse = ?, rpps = ?, role = ? WHERE id = ?",
+      [nom, tel, adresse, rpps, role, id],
       (err, result) => {
         if (err) {
           return res.status(500).json({

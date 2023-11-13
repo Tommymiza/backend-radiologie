@@ -9,7 +9,7 @@ const create = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     //insertion dans la base de données
     db.query(
-      "INSERT INTO users (nom, tel, email, password,adresse, rpps, role, is_verified) VALUES (?, ?, ?, ?, ?,?, ?, 1)",
+      "INSERT INTO users (nom, tel, email, password, adresse, rpps, role, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, 1)",
       [nom, tel, email, hashedPassword, adresse, rpps, role],
       (err, result) => {
         if (err) {
@@ -87,7 +87,7 @@ const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     db.query(
-      "INSERT INTO users (nom, tel, adresse, email, password, rpps, role, is_verified) VALUES (?, ?, ?, ?, ?, ?, 'Medecin', 0)",
+      "INSERT INTO users (nom, tel, adresse, email, password, rpps, role, is_verified) VALUES (?, ?, ?, ?, ?, ?, 'medecin', 0)",
       [nom, tel, adresse, email, hashedPassword, rpps],
       (err, result) => {
         if (err) {

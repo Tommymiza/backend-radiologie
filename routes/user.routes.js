@@ -7,7 +7,7 @@ router
   .post("/add", auth(["admin"]), userController.create)
   .post("/signup", userController.signup)
   .post("/verify", auth(["admin"]), userController.verifyMedecin)
-  .put("/update", auth(["admin"]), userController.updateOne)
+  .put("/update", auth(["admin", "medecin"]), userController.updateOne)
   .delete("/delete/:id", auth(["admin"]), userController.deleteOne)
   .post(
     "/logout",

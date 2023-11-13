@@ -205,6 +205,36 @@ const getAll = async (req, res) => {
     });
   }
 };
+const getMine = async (req, res) => {
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decodedToken) {
+      return res.status(401).json({
+        error: "Requête invalide !",
+      });
+    }
+    const id_medecin = decodedToken.id;
+    db.query(
+      "SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, status, id_medecin, nom_type, nom_sous_type FROM demandes, types, soustypes WHERE demandes.id_type = types.id AND demandes.id_sous_type = soustypes.id AND id_medecin = ?",[id_medecin],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            error: "Erreur lors de la récupération des demandes",
+          });
+        }
+        return res.send({
+          demandes: result,
+        });
+      }
+    );
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({
+      error: "Erreur lors de la récupération des demandes",
+    });
+  }
+};
 
 const changeStatus = async (req, res) => {
   try {
@@ -286,6 +316,7 @@ const deleteMine = async (req, res) => {
 module.exports = {
   create,
   getAll,
+  getMine,
   changeStatus,
   deleteOne,
   deleteMine,

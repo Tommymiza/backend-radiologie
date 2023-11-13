@@ -34,7 +34,15 @@ const create = async (req, res) => {
 const updateOne = async (req, res) => {
   try {
     const { id, nom, adresse, tel, rpps, role } = req.body;
-
+    if (role !== "admin") {
+      const token = req.header("Authorization")?.split(" ")[1];
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+      if (decodedToken.id !== id) {
+        return res.status(401).send({
+          error: "Vous n'avez pas le droit de modifier cet utilisateur",
+        });
+      }
+    }
     db.query(
       "UPDATE users SET nom = ?, tel = ?, adresse = ?, rpps = ?, role = ? WHERE id = ?",
       [nom, tel, adresse, rpps, role, id],
@@ -255,28 +263,9 @@ const checkConnectedUser = async (req, res) => {
             error: "L'utilisateur n'a pas le bon rôle",
           });
         }
-        let demandes = [];
-        if (role === "medecin") {
-          db.query(
-            "SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, status, id_medecin, nom_type, nom_sous_type FROM demandes, types, soustypes WHERE demandes.id_type = types.id AND demandes.id_sous_type = soustypes.id AND id_medecin = ?",
-            [rows[0].id],
-            (err1, result1) => {
-              if (err1) {
-                return res.status(500).json({
-                  error: "Erreur lors de la récupération des demandes",
-                });
-              }
-              demandes = result1;
-              const user = rows[0];
-              delete user.password;
-              // Envoi de la réponse
-              return res.send({
-                user,
-                demandes,
-              });
-            }
-          );
-        }
+        return res.send({
+          user: rows[0],
+        });
       }
     );
   } catch (err) {

@@ -4,6 +4,7 @@ const demandeController = require("../controllers/demandeController");
 
 router
   .get("/", auth(["admin", "radiologue"]), demandeController.getAll)
+  .get("/mine", auth(["medecin"]), demandeController.getMine)
   .put("/update", auth(["admin", "radiologue"]), demandeController.changeStatus)
   .post("/sendcode", demandeController.sendCodeConfirmation)
   .delete(

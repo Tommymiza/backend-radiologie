@@ -3,7 +3,8 @@ const userController = require("../controllers/userController");
 const auth = require("../middlewares/authentication");
 
 router
-  .get("/", auth(["admin"]), userController.getAll)
+  .get("/", auth(["admin", "medecin", "radiologue"]), userController.getAll)
+  .get("/all", auth(["medecin"]), userController.getAllType)
   .post("/add", auth(["admin"]), userController.create)
   .post("/signup", userController.signup)
   .post("/verify", auth(["admin"]), userController.verifyMedecin)

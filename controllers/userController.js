@@ -214,6 +214,30 @@ const getAll = async (req, res) => {
     });
   }
 };
+const getAllType = async (req, res) => {
+  try {
+    // Récupération des utilisateurs
+    db.query("SELECT * FROM users WHERE role = 'medecin'", (err, rows) => {
+      if (err) {
+        return res.status(500).json({
+          error: "Erreur lors de la récupération des utilisateurs",
+        });
+      }
+      const users = rows.map((user) => {
+        delete user.password;
+        return user;
+      });
+      return res.send({
+        users,
+      });
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({
+      error: "Erreur lors de la récupération des utilisateurs",
+    });
+  }
+};
 
 const verifyMedecin = async (req, res) => {
   try {
@@ -307,6 +331,7 @@ module.exports = {
   signup,
   login,
   getAll,
+  getAllType,
   checkConnectedUser,
   logout,
 };

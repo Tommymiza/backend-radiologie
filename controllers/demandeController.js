@@ -12,11 +12,9 @@ const create = async (req, res) => {
       tel,
       rdv,
       id_type,
-      id_sous_type,
       id_medecin,
       code,
     } = req.body;
-    console.log(req.body);
     if (!id_medecin) {
       db.query(
         "SELECT code FROM codes WHERE email = ? AND code = ?",
@@ -39,7 +37,7 @@ const create = async (req, res) => {
             }
           );
           db.query(
-            "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_sous_type, id_medecin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_medecin) VALUES (?, ?, ?, ?, ?, ?, ?)",
             [
               nom_patient,
               email,
@@ -47,7 +45,6 @@ const create = async (req, res) => {
               tel,
               rdv,
               id_type,
-              id_sous_type,
               id_medecin,
             ],
             async (err2, result2) => {
@@ -82,7 +79,7 @@ const create = async (req, res) => {
       );
     } else {
       db.query(
-        "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_sous_type, id_medecin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_medecin) VALUES (?, ?, ?, ?, ?, ?, ?)",
         [
           nom_patient,
           email,
@@ -90,7 +87,6 @@ const create = async (req, res) => {
           tel,
           rdv,
           id_type,
-          id_sous_type,
           id_medecin,
         ],
         async (err2, result2) => {
@@ -186,7 +182,7 @@ const sendCodeConfirmation = async (req, res) => {
 const getAll = async (req, res) => {
   try {
     db.query(
-      "SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, status, id_medecin, nom_type, nom_sous_type FROM demandes, types, soustypes WHERE demandes.id_type = types.id AND demandes.id_sous_type = soustypes.id",
+      "SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, id_medecin, nom_type, nom_sous_type, lieu FROM demandes, types WHERE demandes.id_type = types.id",
       (err, result) => {
         if (err) {
           return res.status(500).json({
@@ -216,7 +212,7 @@ const getMine = async (req, res) => {
     }
     const id_medecin = decodedToken.id;
     db.query(
-      "SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, status, id_medecin, nom_type, nom_sous_type FROM demandes, types, soustypes WHERE demandes.id_type = types.id AND demandes.id_sous_type = soustypes.id AND id_medecin = ?",[id_medecin],
+      "SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, id_medecin, nom_type, nom_sous_type, lieu FROM demandes, types WHERE demandes.id_type = types.id AND id_medecin = ?",[id_medecin],
       (err, result) => {
         if (err) {
           return res.status(500).json({
@@ -238,10 +234,10 @@ const getMine = async (req, res) => {
 
 const changeStatus = async (req, res) => {
   try {
-    const { id, status } = req.body;
+    const { id, lieu } = req.body;
     db.query(
-      "UPDATE demandes SET status = ? WHERE id = ?",
-      [status, id],
+      "UPDATE demandes SET lieu = ? WHERE id = ?",
+      [lieu, id],
       (err, result) => {
         if (err) {
           return res.status(500).json({

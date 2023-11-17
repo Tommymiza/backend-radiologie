@@ -2,12 +2,12 @@ const db = require("../db");
 
 const create = async (req, res) => {
   try {
-    const { nom } = req.body;
+    const { nom_type, nom_sous_type } = req.body;
 
     //insertion dans la base de données
     db.query(
-      "INSERT INTO soustypes (nom_sous_type) VALUES (?)",
-      [nom],
+      "INSERT INTO types (nom_type, nom_sous_type) VALUES (?, ?)",
+      [nom_type, nom_sous_type],
       (err, result) => {
         if (err) {
           return res.status(500).json({
@@ -29,11 +29,11 @@ const create = async (req, res) => {
 
 const updateOne = async (req, res) => {
   try {
-    const { id, nom } = req.body;
+    const { id, nom_sous_type } = req.body;
 
     db.query(
-      "UPDATE soustypes SET nom_sous_type = ? WHERE id = ?",
-      [nom, id],
+      "UPDATE types SET nom_sous_type = ? WHERE id = ?",
+      [nom_sous_type, id],
       (err, result) => {
         if (err) {
           return res.status(500).json({
@@ -75,29 +75,8 @@ const deleteOne = async (req, res) => {
   }
 };
 
-const getAll = async (req, res) => {
-  try {
-    db.query("SELECT * FROM soustypes", (err, rows) => {
-      if (err) {
-        return res.status(500).json({
-          error: "Erreur lors de la récupération des sous types",
-        });
-      }
-      res.send({
-        soustypes: rows,
-      });
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({
-      error: "Erreur lors de la récupération des sous types",
-    });
-  }
-};
-
 module.exports = {
   create,
   updateOne,
   deleteOne,
-  getAll,
 };

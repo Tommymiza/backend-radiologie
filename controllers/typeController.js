@@ -2,17 +2,21 @@ const db = require("../db");
 
 const create = async (req, res) => {
   try {
-    const { nom } = req.body;
-
-    //insertion dans la base de données
-    const [rows, fields] = await (
-      await db
-    ).query("INSERT INTO types (nom_type) VALUES (?)", [nom]);
-
-    //envoi de la réponse
-    res.send({
-      message: "Type créé avec succès",
-    });
+    const { nom_type, nom_sous_type } = req.body;
+    db.query(
+      "INSERT INTO types (nom_type, nom_sous_type) VALUES (?, ?)",
+      [nom_type, nom_sous_type],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            error: "Erreur lors de la création du type",
+          });
+        }
+        return res.send({
+          message: "Type créé avec succès",
+        });
+      }
+    );
   } catch (err) {
     console.log(err);
     res.status(500).send({
@@ -23,16 +27,21 @@ const create = async (req, res) => {
 
 const updateOne = async (req, res) => {
   try {
-    const { id, nom } = req.body;
-
-    const [rows, fields] = await (
-      await db
-    ).query("UPDATE types SET nom_type = ? WHERE id = ?", [nom, id]);
-
-    // Envoi de la réponse
-    res.send({
-      message: "Type modifié avec succès",
-    });
+    const { id, nom_type, nom_sous_type } = req.body;
+    db.query(
+      "UPDATE types SET nom_type = ? WHERE id = ?",
+      [nom_type, id],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            error: "Erreur lors de la modification!",
+          });
+        }
+        return res.send({
+          message: "Modification efféctuée",
+        });
+      }
+    );
   } catch (err) {
     console.log(err);
     res.status(500).send({

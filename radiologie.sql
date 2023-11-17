@@ -120,8 +120,8 @@ CREATE TABLE IF NOT EXISTS `tokens` (
 DROP TABLE IF EXISTS `types`;
 CREATE TABLE IF NOT EXISTS `types` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `nom_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `nom_sous_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `nom_type` varchar(50) NOT NULL,
+  `nom_sous_type` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10;
 

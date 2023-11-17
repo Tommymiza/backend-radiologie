@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : sam. 11 nov. 2023 à 05:46
+-- Généré le : ven. 17 nov. 2023 à 19:15
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -33,7 +33,15 @@ CREATE TABLE IF NOT EXISTS `codes` (
   `code` int NOT NULL,
   `email` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17;
+) ENGINE=InnoDB AUTO_INCREMENT=20;
+
+--
+-- Déchargement des données de la table `codes`
+--
+
+INSERT INTO `codes` (`id`, `code`, `email`) VALUES
+(17, 935701, 'tommymiza6@gmail.com'),
+(19, 393520, 'tommymiza6@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -51,13 +59,19 @@ CREATE TABLE IF NOT EXISTS `demandes` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `rdv` date DEFAULT NULL,
   `id_type` int NOT NULL,
-  `id_sous_type` int NOT NULL,
-  `status` enum('non pris','pris') NOT NULL DEFAULT 'non pris',
   `id_medecin` int DEFAULT NULL,
+  `lieu` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `id_type` (`id_type`,`id_sous_type`),
-  KEY `id_sous_type` (`id_sous_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=11;
+  KEY `id_type` (`id_type`)
+) ENGINE=InnoDB AUTO_INCREMENT=21;
+
+--
+-- Déchargement des données de la table `demandes`
+--
+
+INSERT INTO `demandes` (`id`, `nom_patient`, `email`, `datenais`, `tel`, `created_at`, `rdv`, `id_type`, `id_medecin`, `lieu`) VALUES
+(19, 'Miza Tommy', 'tommymiza6@gmail.com', '2023-11-01', '0336350015', '2023-11-17 06:50:58', NULL, 6, 12, ''),
+(20, 'Miza Tommy', 'tommymiza6@gmail.com', '2023-11-10', '0336350015', '2023-11-17 09:07:10', NULL, 7, 12, '');
 
 -- --------------------------------------------------------
 
@@ -75,28 +89,7 @@ CREATE TABLE IF NOT EXISTS `messages` (
   PRIMARY KEY (`id`),
   KEY `id_envoyeur` (`id_envoyeur`),
   KEY `id_receveur` (`id_receveur`)
-) ENGINE=InnoDB;
-
--- --------------------------------------------------------
-
---
--- Structure de la table `soustypes`
---
-
-DROP TABLE IF EXISTS `soustypes`;
-CREATE TABLE IF NOT EXISTS `soustypes` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `nom_sous_type` varchar(50) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3;
-
---
--- Déchargement des données de la table `soustypes`
---
-
-INSERT INTO `soustypes` (`id`, `nom_sous_type`) VALUES
-(1, 'PIED'),
-(2, 'CHEVILLE');
+) ENGINE=InnoDB AUTO_INCREMENT=19;
 
 -- --------------------------------------------------------
 
@@ -112,7 +105,11 @@ CREATE TABLE IF NOT EXISTS `tokens` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `id_user` (`id_user`)
-) ENGINE=InnoDB AUTO_INCREMENT=23;
+) ENGINE=InnoDB AUTO_INCREMENT=47;
+
+--
+-- Déchargement des données de la table `tokens`
+--
 
 -- --------------------------------------------------------
 
@@ -123,18 +120,23 @@ CREATE TABLE IF NOT EXISTS `tokens` (
 DROP TABLE IF EXISTS `types`;
 CREATE TABLE IF NOT EXISTS `types` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `nom_type` varchar(50) NOT NULL,
+  `nom_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `nom_sous_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6;
+) ENGINE=InnoDB AUTO_INCREMENT=10;
 
 --
 -- Déchargement des données de la table `types`
 --
 
-INSERT INTO `types` (`id`, `nom_type`) VALUES
-(2, 'TDM'),
-(3, 'IRM'),
-(5, 'ECHO');
+INSERT INTO `types` (`id`, `nom_type`, `nom_sous_type`) VALUES
+(2, 'TDM', 'VENTRE'),
+(3, 'IRM', 'PIED'),
+(5, 'ECHO', 'ABDOMINALE'),
+(6, 'TDM', 'CHEVILLE'),
+(7, 'TDM', 'POIGNET'),
+(8, 'IRM', 'CERVEAU'),
+(9, 'TDM', 'GENOUX');
 
 -- --------------------------------------------------------
 
@@ -155,7 +157,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `is_verified` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=14;
+) ENGINE=InnoDB AUTO_INCREMENT=15;
 
 --
 -- Déchargement des données de la table `users`
@@ -163,7 +165,8 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 INSERT INTO `users` (`id`, `nom`, `tel`, `adresse`, `email`, `password`, `rpps`, `role`, `is_verified`) VALUES
 (1, 'Tommy', '0344824468', 'Tanambao', 'tommymiza20@gmail.com', '$2b$10$srkZ0csYhp7MfHsqS5eHTuDsthS1rchw2AgYedfaQ1JAS5DQ1rPjK', '0315225422', 'admin', 1),
-(12, 'Tommy Miza', '0336350015', 'Tanambao', 'tommymiza6@gmail.com', '$2b$10$v6hTYMu5ckODoOJ/pKMANujd1z1gvCgdezXaEXkbQHcnNoAKPQ6jO', '255222', 'medecin', 1);
+(12, 'Tommy Miza', '0336350015', 'Tanambao', 'tommymiza6@gmail.com', '$2b$10$v6hTYMu5ckODoOJ/pKMANujd1z1gvCgdezXaEXkbQHcnNoAKPQ6jO', '255222', 'medecin', 1),
+(14, 'John Doe', '0345526559', 'Tanambao', 'tommy@gmail.com', '$2b$10$HotEAsHhr13bU/suq.lxoekbWB9Oz0UNctYN2smWZ9tB5cYhGHNoW', '48555256', 'medecin', 1);
 
 --
 -- Contraintes pour les tables déchargées
@@ -173,8 +176,7 @@ INSERT INTO `users` (`id`, `nom`, `tel`, `adresse`, `email`, `password`, `rpps`,
 -- Contraintes pour la table `demandes`
 --
 ALTER TABLE `demandes`
-  ADD CONSTRAINT `demandes_ibfk_1` FOREIGN KEY (`id_type`) REFERENCES `types` (`id`) ON DELETE RESTRICT,
-  ADD CONSTRAINT `demandes_ibfk_2` FOREIGN KEY (`id_sous_type`) REFERENCES `soustypes` (`id`) ON DELETE RESTRICT;
+  ADD CONSTRAINT `demandes_ibfk_1` FOREIGN KEY (`id_type`) REFERENCES `types` (`id`) ON DELETE RESTRICT;
 
 --
 -- Contraintes pour la table `messages`

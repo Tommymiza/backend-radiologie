@@ -4,8 +4,7 @@ const auth = require("../middlewares/authentication");
 
 router
   .get("/", auth(["admin", "medecin", "radiologue"]), userController.getAll)
-  .get("/all", auth(["medecin"]), userController.getAllType)
-  .get("/all-radiologue", auth(["radiologue"]), userController.getAllRadiologue)
+  .get("/all", auth(["radiologue"]), userController.getAllType)
   .post("/add", auth(["admin"]), userController.create)
   .post("/signup", userController.signup)
   .post("/verify", auth(["admin"]), userController.verifyMedecin)

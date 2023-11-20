@@ -15,9 +15,8 @@ const io = new Server(server, {
 
 io.on("connection", async (socket) => {
   io.emit("online", {
-    users: (await io.fetchSockets()).map((s) => s.handshake.query.id_user),
+    users: (await io.fetchSockets()).map((s) => ({ id: s.handshake.query.id_user, lieu: s.handshake.query.lieu})),
   });
-
   socket.on("join", (data) => {
     socket.join(data.room);
   });

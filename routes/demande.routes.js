@@ -1,7 +1,21 @@
 const router = require("express").Router();
 const auth = require("../middlewares/authentication");
 const demandeController = require("../controllers/demandeController");
+const multer = require("multer");
+const path = require("path");
+const storage = multer.diskStorage({
+  destination: "./upload/files",
+  filename: (req, file, cb) => {
+    return cb(
+      null,
+      `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`
+    );
+  },
+});
 
+const upload = multer({
+  storage,
+});
 router
   .get("/", auth(["admin", "radiologue"]), demandeController.getAll)
   .get("/mine", auth(["medecin"]), demandeController.getMine)
@@ -12,7 +26,7 @@ router
     auth(["admin", "radiologue", "medecin"]),
     demandeController.deleteOne
   )
-  .post("/add", demandeController.create)
+  .post("/add", upload.single("ordonnance"), demandeController.create)
   .delete("/delete/email/:token", demandeController.deleteMine);
 
 module.exports = router;

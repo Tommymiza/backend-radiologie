@@ -3,6 +3,30 @@ const jwt = require("jsonwebtoken");
 const transporter = require("../mailconfig");
 const path = require("path");
 
+const formaDate = (dateString) => {
+  const months = [
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
+  ];
+
+  const date = new Date(dateString);
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+
+  return `${day} ${month} ${year}`;
+};
+
 const create = async (req, res) => {
   try {
     const {
@@ -15,6 +39,11 @@ const create = async (req, res) => {
       id_medecin,
       code,
     } = req.body;
+
+    const files = req.file ? `/files/${req.file.filename}` : null;
+    const rendez_vous = rdv === "null" ? null : rdv;
+    const medecin = id_medecin === "null" ? null : id_medecin;
+
     if (!id_medecin) {
       db.query(
         "SELECT code FROM codes WHERE email = ? AND code = ?",
@@ -37,20 +66,22 @@ const create = async (req, res) => {
             }
           );
           db.query(
-            "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_medecin) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_medecin, ordonnance) VALUES (?, ?, ?, ?, ?, ?,?, ?)",
             [
               nom_patient,
               email,
               datenais,
               tel,
-              rdv,
+              rendez_vous,
               id_type,
-              id_medecin,
+              files,
+              medecin,
             ],
             async (err2, result2) => {
               if (err2) {
                 return res.status(500).json({
                   error: "Erreur lors de la création de la demande",
+                  message: err2,
                 });
               }
               const linktoken = jwt.sign(
@@ -79,20 +110,22 @@ const create = async (req, res) => {
       );
     } else {
       db.query(
-        "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_medecin) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type,ordonnance, id_medecin) VALUES (?, ?, ?, ?, ?, ?,?, ?)",
         [
           nom_patient,
           email,
           datenais,
           tel,
-          rdv,
+          rendez_vous,
           id_type,
-          id_medecin,
+          files,
+          medecin,
         ],
         async (err2, result2) => {
           if (err2) {
             return res.status(500).json({
               error: "Erreur lors de la création de la demande",
+              message: err2,
             });
           }
           const linktoken = jwt.sign(
@@ -182,7 +215,7 @@ const sendCodeConfirmation = async (req, res) => {
 const getAll = async (req, res) => {
   try {
     db.query(
-      "SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, id_medecin, nom_type, nom_sous_type, lieu FROM demandes, types WHERE demandes.id_type = types.id",
+      "SELECT demandes.id, demandes.nom_patient, demandes.email AS email, demandes.datenais, demandes.ordonnance, demandes.tel, demandes.created_at, demandes.rdv, COALESCE(users.nom, NULL) AS nom_medecin, types.nom_type, types.nom_sous_type, demandes.lieu,demandes.date_rdv FROM demandes INNER JOIN types ON demandes.id_type = types.id LEFT JOIN users ON demandes.id_medecin = users.id",
       (err, result) => {
         if (err) {
           return res.status(500).json({
@@ -212,7 +245,8 @@ const getMine = async (req, res) => {
     }
     const id_medecin = decodedToken.id;
     db.query(
-      "SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, id_medecin, nom_type, nom_sous_type, lieu FROM demandes, types WHERE demandes.id_type = types.id AND id_medecin = ?",[id_medecin],
+      "SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, id_medecin, nom_type, nom_sous_type, lieu FROM demandes, types WHERE demandes.id_type = types.id AND id_medecin = ?",
+      [id_medecin],
       (err, result) => {
         if (err) {
           return res.status(500).json({
@@ -234,15 +268,46 @@ const getMine = async (req, res) => {
 
 const changeStatus = async (req, res) => {
   try {
-    const { id, lieu } = req.body;
+    const { id, lieu, date_rdv } = req.body;
     db.query(
-      "UPDATE demandes SET lieu = ? WHERE id = ?",
-      [lieu, id],
+      "UPDATE demandes SET lieu = ?, date_rdv = ? WHERE id = ?",
+      [lieu, date_rdv, id],
       (err, result) => {
         if (err) {
           return res.status(500).json({
             error: "Erreur lors de la modification du statut",
           });
+        } else {
+          db.query(
+            "SELECT d.email, d.nom_patient, d.lieu, d.date_rdv, t.nom_type, t.nom_sous_type FROM demandes d INNER JOIN types t ON d.id_type = t.id WHERE d.id = ?",
+            [id],
+            async (err, result) => {
+              if (err || result.length === 0) {
+                return res.status(401).json({
+                  error: "Demande inconnu",
+                });
+              } else {
+                const {
+                  email,
+                  nom_patient,
+                  lieu,
+                  date_rdv,
+                  nom_type,
+                  nom_sous_type,
+                } = result[0];
+                const info = await transporter.sendMail({
+                  from: process.env.SMTP_USER,
+                  to: email,
+                  subject: "Demande radiologie",
+                  html: `
+          <p> Bonjour ${nom_patient}, nous sommes ravis de vous confirmer votre rendez-vous pour l'examen d’imagerie médical ${nom_type} avec le type d'examen ${nom_sous_type}  le ${formaDate(
+                    date_rdv
+                  )}. Votre rendez-vous se tiendra à notre établissement situé à ${lieu}. Nous avons hâte de vous y accueillir.</p>
+        `,
+                });
+              }
+            }
+          );
         }
         res.send({
           message: "Statut modifié avec succès",

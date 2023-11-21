@@ -78,7 +78,7 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use("/files", express.static("upload/files"));
 app.use("/api", globalRoutes);
 
 app.get("/", async (req, res) => {

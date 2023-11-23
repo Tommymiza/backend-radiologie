@@ -1,30 +1,34 @@
 require("dotenv").config();
-const express = require("express");
-const http = require("http");
 const cors = require("cors");
 const globalRoutes = require("./routes/index.routes");
-const app = express();
-const server = http.createServer(app);
-const { Server } = require("socket.io");
 const db = require("./db");
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-  },
-});
+const express = require("express");
 
+const {socket: io, server, app} = require("./socket");
 io.on("connection", async (socket) => {
   io.emit("online", {
-    users: (await io.fetchSockets()).map((s) => ({ id: s.handshake.query.id_user, lieu: s.handshake.query.lieu})),
+    users: (await io.fetchSockets()).map((s) => ({
+      id: s.handshake.query.id_user,
+      lieu: s.handshake.query.lieu,
+    })),
   });
+  socket.on("online", async ()=>{
+    io.emit("online", {
+      users: (await io.fetchSockets()).map((s) => ({
+        id: s.handshake.query.id_user,
+        lieu: s.handshake.query.lieu,
+      })),
+    });
+  })
   socket.on("join", (data) => {
     socket.join(data.room);
   });
-
+  socket.on("get demande", () => {
+    io.emit("get demande");
+  });
   socket.on("leave", (data) => {
     socket.leave(data.room);
   });
-
   socket.on("message", (data) => {
     db.query(
       "INSERT INTO messages (id_envoyeur, id_receveur, message) VALUES (?, ?, ?)",
@@ -42,13 +46,13 @@ io.on("connection", async (socket) => {
               console.log(err1);
               return;
             }
+            io.to(`roomuser-${data.dest_id}`).emit("newmessage");
             io.to(data.room).emit("message", rows1[0]);
           }
         );
       }
     );
   });
-
   socket.on("getMessages", (data) => {
     db.query(
       "SELECT * FROM messages WHERE (id_envoyeur = ? AND id_receveur = ?) OR (id_envoyeur = ? AND id_receveur = ?)",
@@ -59,17 +63,22 @@ io.on("connection", async (socket) => {
           return;
         }
         io.to(data.room).emit("getMessages", rows);
+        db.query(`UPDATE messages SET lu = 1 WHERE id_envoyeur = ? AND id_receveur = ?`, [data.dest_id, data.id], (err1, rows1) => {
+          if (err1) {
+            console.log(err1);
+            return;
+          }
+          io.to(`roomuser-${data.id}`).emit("newmessage");
+        })
       }
     );
   });
-
   socket.on("disconnect", async (reason) => {
     io.emit("online", {
       users: (await io.fetchSockets()).map((s) => s.handshake.query.id_user),
     });
   });
 });
-
 app.use(
   cors({
     origin: "*",
@@ -91,7 +100,6 @@ app.get("/", async (req, res) => {
     res.sendStatus(500);
   }
 });
-
 server.listen(process.env.PORT, (err) => {
   if (err) throw err;
   console.log(`Server running on port: ${process.env.PORT}`);

@@ -2,6 +2,7 @@ const db = require("../db");
 const jwt = require("jsonwebtoken");
 const transporter = require("../mailconfig");
 const path = require("path");
+const {socket: io} = require("../socket");
 
 const formaDate = (dateString) => {
   const months = [
@@ -170,6 +171,7 @@ const deleteFromEmail = async (req, res) => {
       });
     }
     db.query("DELETE FROM demandes WHERE id = ?", [decodedToken.id]);
+    io.emit("get demande");
     res.sendFile(path.join(__dirname, "../views/deleteDemande.html"));
   } catch (error) {
     console.log(error);
@@ -245,7 +247,7 @@ const getMine = async (req, res) => {
     }
     const id_medecin = decodedToken.id;
     db.query(
-      "SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, id_medecin, nom_type, nom_sous_type, lieu FROM demandes, types WHERE demandes.id_type = types.id AND id_medecin = ?",
+      "SELECT demandes.id, nom_patient, email, datenais, tel, created_at, rdv, id_medecin, nom_type, nom_sous_type, lieu, date_rdv FROM demandes, types WHERE demandes.id_type = types.id AND id_medecin = ?",
       [id_medecin],
       (err, result) => {
         if (err) {

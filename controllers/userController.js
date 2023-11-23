@@ -229,7 +229,7 @@ const getAll = async (req, res) => {
 const getAllType = async (req, res) => {
   try {
     // Récupération des utilisateurs
-    db.query("SELECT * FROM users WHERE role = 'radiologue'", (err, rows) => {
+    db.query("SELECT * FROM users WHERE role = 'radiologue' OR role = 'admin'", (err, rows) => {
       if (err) {
         return res.status(500).json({
           error: "Erreur lors de la récupération des utilisateurs",

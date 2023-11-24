@@ -138,12 +138,12 @@ const create = async (req, res) => {
             to: email,
             subject: "Demande radiologie",
             html: `
-    <p>Bonjour ${nom_patient},</p>
-    <p>Votre demande de rendez-vous a été prise en compte.</p>
-    <p>Vous recevrez un email de confirmation dès qu'un médecin aura pris en charge votre demande.</p>
-    <p>Si vous voulez supprimer la demande, veuillez cliquez sur ce bouton</p>
-    <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a>
-  `,
+              <p>Bonjour ${nom_patient},</p>
+              <p>Votre demande de rendez-vous a été prise en compte.</p>
+              <p>Vous recevrez un email de confirmation dès qu'un médecin aura pris en charge votre demande.</p>
+              <p>Si vous voulez supprimer la demande, veuillez cliquez sur ce bouton</p>
+              <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a>
+            `,
           });
           res.send({
             message: "Demande ajoutée avec succès",

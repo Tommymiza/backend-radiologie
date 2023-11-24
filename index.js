@@ -29,10 +29,14 @@ io.on("connection", async (socket) => {
   socket.on("leave", (data) => {
     socket.leave(data.room);
   });
-  socket.on("message", (data) => {
+  socket.on("message", async (data) => {
+    let lu = 0;
+    if((await io.to(data.room).fetchSockets()).length === 2){
+      lu = 1;
+    }
     db.query(
-      "INSERT INTO messages (id_envoyeur, id_receveur, message) VALUES (?, ?, ?)",
-      [data.id, data.dest_id, data.message],
+      "INSERT INTO messages (id_envoyeur, id_receveur, message, lu) VALUES (?, ?, ?, ?)",
+      [data.id, data.dest_id, data.message, lu],
       (err, rows) => {
         if (err) {
           console.log(err);

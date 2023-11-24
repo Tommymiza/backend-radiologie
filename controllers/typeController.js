@@ -3,6 +3,11 @@ const db = require("../db");
 const create = async (req, res) => {
   try {
     const { nom_type, nom_sous_type } = req.body;
+    if(nom_type == null || nom_sous_type == null || nom_type == "" || nom_sous_type == "") {
+      return res.status(400).json({
+        error: "Champ invalide!",
+      });
+    }
     db.query(
       "INSERT INTO types (nom_type, nom_sous_type) VALUES (?, ?)",
       [nom_type, nom_sous_type],
@@ -28,6 +33,11 @@ const create = async (req, res) => {
 const updateOne = async (req, res) => {
   try {
     const { id, nom_type, nom_sous_type } = req.body;
+    if(id == null || nom_type == null || nom_sous_type == null || id == "" || nom_type == "" || nom_sous_type == "") {
+      return res.status(400).json({
+        error: "Champ invalide!",
+      });
+    }
     db.query(
       "UPDATE types SET nom_type = ? WHERE id = ?",
       [nom_type, id],

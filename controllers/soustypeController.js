@@ -3,7 +3,16 @@ const db = require("../db");
 const create = async (req, res) => {
   try {
     const { nom_type, nom_sous_type } = req.body;
-
+    if (
+      nom_type == null ||
+      nom_sous_type == null ||
+      nom_type == "" ||
+      nom_sous_type == ""
+    ) {
+      return res.status(400).json({
+        error: "Champ invalide!",
+      });
+    }
     //insertion dans la base de données
     db.query(
       "INSERT INTO types (nom_type, nom_sous_type) VALUES (?, ?)",

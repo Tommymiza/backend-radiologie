@@ -284,8 +284,8 @@ const verifyMedecin = async (req, res) => {
 const checkConnectedUser = async (req, res) => {
   const role = req.params.role;
   // Récupération du token
-  const token = req.header("Authorization")?.split(" ")[1];
   try {
+    const token = req.header("Authorization")?.split(" ")[1];
     // Récupération de l'utilisateur connecté
     db.query(
       "Select users.* From users, tokens Where users.id = tokens.id_user AND tokens.token = ?",
@@ -323,8 +323,8 @@ const checkConnectedUser = async (req, res) => {
 
 const logout = async (req, res) => {
   // Récupération du token
-  const token = req.header("Authorization")?.split(" ")[1];
   try {
+    const token = req.header("Authorization")?.split(" ")[1];
     // Suppression du token
     db.query("DELETE FROM tokens WHERE token = ?", [token], (err) => {
       if (err) {

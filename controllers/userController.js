@@ -6,6 +6,11 @@ const transporter = require("../mailconfig");
 const create = async (req, res) => {
   try {
     const { nom, tel, email, adresse, rpps, role } = req.body;
+    if(!nom || !tel || !adresse || !email || !password || !rpps || nom.length === 0 || tel.length === 0 || adresse.length === 0 || email.length === 0 || password.length === 0 || rpps.length === 0 || role === null) {
+      return res.status(500).send({
+        error: "Champ invalide",
+      });
+    }
     //hashage du mot de passe
     const password = Math.random().toString(36).slice(-8);
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -103,7 +108,11 @@ const deleteOne = async (req, res) => {
 const signup = async (req, res) => {
   try {
     const { nom, tel, adresse, email, password, rpps } = req.body;
-    console.log(req.body);
+    if(!nom || !tel || !adresse || !email || !password || !rpps || nom.length === 0 || tel.length === 0 || adresse.length === 0 || email.length === 0 || password.length === 0 || rpps.length === 0) {
+      return res.status(500).send({
+        error: "Champ invalide",
+      });
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
 
     db.query(

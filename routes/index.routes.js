@@ -10,14 +10,14 @@ router
   .get("/message/getmessagenonlu", async (req, res) => {
     const { id } = req.query;
     db.query(
-      "SELECT COUNT(*) as count FROM messages WHERE id_receveur = ? AND lu = 0",
+      "SELECT * FROM messages WHERE id_receveur = ? AND lu = 0 GROUP BY id_envoyeur",
       [id],
       (err, rows) => {
         if (err) {
           console.log(err);
           res.status(500).send(err);
         }
-        res.send(rows[0]);
+        res.send({count: rows.length});
       }
     );
   });

@@ -217,7 +217,7 @@ const sendCodeConfirmation = async (req, res) => {
 const getAll = async (req, res) => {
   try {
     db.query(
-      "SELECT demandes.id, demandes.nom_patient, demandes.email AS email, demandes.datenais, demandes.ordonnance, demandes.tel, demandes.created_at, demandes.rdv, COALESCE(users.nom, NULL) AS nom_medecin, types.nom_type, types.nom_sous_type, demandes.lieu,demandes.date_rdv FROM demandes INNER JOIN types ON demandes.id_type = types.id LEFT JOIN users ON demandes.id_medecin = users.id",
+      "SELECT demandes.id, demandes.nom_patient, demandes.email AS email, demandes.datenais, demandes.ordonnance, demandes.tel, demandes.created_at, demandes.rdv, COALESCE(users.nom, NULL) AS nom_medecin, types.nom_type, types.nom_sous_type, demandes.lieu,demandes.date_rdv FROM demandes INNER JOIN types ON demandes.id_type = types.id LEFT JOIN users ON demandes.id_medecin = users.id ORDER BY created_at DESC",
       (err, result) => {
         if (err) {
           return res.status(500).json({

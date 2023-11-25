@@ -6,7 +6,19 @@ const transporter = require("../mailconfig");
 const create = async (req, res) => {
   try {
     const { nom, tel, email, adresse, rpps, role } = req.body;
-    if(!nom || !tel || !adresse || !email || !password || !rpps || nom.length === 0 || tel.length === 0 || adresse.length === 0 || email.length === 0 || password.length === 0 || rpps.length === 0 || role === null) {
+    if (
+      !nom ||
+      !tel ||
+      !adresse ||
+      !email ||
+      !rpps ||
+      nom.length === 0 ||
+      tel.length === 0 ||
+      adresse.length === 0 ||
+      email.length === 0 ||
+      rpps.length === 0 ||
+      role === null
+    ) {
       return res.status(500).send({
         error: "Champ invalide",
       });
@@ -19,6 +31,7 @@ const create = async (req, res) => {
       "INSERT INTO users (nom, tel, email, password, adresse, rpps, role, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, 1)",
       [nom, tel, email, hashedPassword, adresse, rpps, role],
       async (err, result) => {
+        console.log(err);
         if (err) {
           console.log(err);
           return res.status(500).json({
@@ -108,7 +121,20 @@ const deleteOne = async (req, res) => {
 const signup = async (req, res) => {
   try {
     const { nom, tel, adresse, email, password, rpps } = req.body;
-    if(!nom || !tel || !adresse || !email || !password || !rpps || nom.length === 0 || tel.length === 0 || adresse.length === 0 || email.length === 0 || password.length === 0 || rpps.length === 0) {
+    if (
+      !nom ||
+      !tel ||
+      !adresse ||
+      !email ||
+      !password ||
+      !rpps ||
+      nom.length === 0 ||
+      tel.length === 0 ||
+      adresse.length === 0 ||
+      email.length === 0 ||
+      password.length === 0 ||
+      rpps.length === 0
+    ) {
       return res.status(500).send({
         error: "Champ invalide",
       });
@@ -238,20 +264,23 @@ const getAll = async (req, res) => {
 const getAllType = async (req, res) => {
   try {
     // Récupération des utilisateurs
-    db.query("SELECT * FROM users WHERE role = 'radiologue' OR role = 'admin'", (err, rows) => {
-      if (err) {
-        return res.status(500).json({
-          error: "Erreur lors de la récupération des utilisateurs",
+    db.query(
+      "SELECT * FROM users WHERE role = 'radiologue' OR role = 'admin'",
+      (err, rows) => {
+        if (err) {
+          return res.status(500).json({
+            error: "Erreur lors de la récupération des utilisateurs",
+          });
+        }
+        const users = rows.map((user) => {
+          delete user.password;
+          return user;
+        });
+        return res.send({
+          users,
         });
       }
-      const users = rows.map((user) => {
-        delete user.password;
-        return user;
-      });
-      return res.send({
-        users,
-      });
-    });
+    );
   } catch (err) {
     console.log(err);
     res.status(500).send({

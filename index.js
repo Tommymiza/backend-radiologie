@@ -3,7 +3,7 @@ const cors = require("cors");
 const globalRoutes = require("./routes/index.routes");
 const db = require("./db");
 const express = require("express");
-
+const cron = require("node-cron");
 const { socket: io, server, app } = require("./socket");
 io.on("connection", async (socket) => {
   io.emit("online", {
@@ -115,6 +115,21 @@ app.get("/", async (req, res) => {
     console.log(err);
     res.sendStatus(500);
   }
+});
+
+// Tâche cron planifiée à chaque  minuit  (00:00)
+cron.schedule("05 00 * * *", () => {
+  const sql = `DELETE FROM demandes WHERE rdv < CURDATE() AND (lieu = '' OR lieu IS NULL) AND rdv IS NOT NULL`;
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.error(
+        "Erreur lors de la suppression des entrées dépassées :",
+        err
+      );
+      return;
+    }
+    console.log(`${result?.affectedRows} demandes supprimées.`);
+  });
 });
 server.listen(process.env.PORT, (err) => {
   if (err) throw err;

@@ -69,6 +69,7 @@ const updateOne = async (req, res) => {
       [nom, tel, adresse, rpps, role, id],
       (err, result) => {
         if (err) {
+          console.log(err);
           return res.status(500).json({
             error: "Erreur lors de la modification de l'utilisateur",
           });

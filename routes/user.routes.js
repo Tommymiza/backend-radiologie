@@ -3,8 +3,16 @@ const userController = require("../controllers/userController");
 const auth = require("../middlewares/authentication");
 
 router
-  .get("/", auth(["admin", "medecin", "radiologue"]), userController.getAll)
-  .get("/all", auth(["admin","radiologue"]), userController.getAllType)
+  .get(
+    "/",
+    auth(["admin", "medecin", "radiologue", "secretaire"]),
+    userController.getAll
+  )
+  .get(
+    "/all",
+    auth(["admin", "radiologue", "secretaire"]),
+    userController.getAllType
+  )
   .post("/add", auth(["admin"]), userController.create)
   .post("/signup", userController.signup)
   .post("/verify", auth(["admin"]), userController.verifyMedecin)
@@ -12,7 +20,7 @@ router
   .delete("/delete/:id", auth(["admin"]), userController.deleteOne)
   .post(
     "/logout",
-    auth(["admin", "radiologue", "medecin"]),
+    auth(["admin", "radiologue", "secretaire", "medecin"]),
     userController.logout
   )
   .post("/login/:role", userController.login)

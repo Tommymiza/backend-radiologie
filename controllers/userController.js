@@ -265,7 +265,7 @@ const getAllType = async (req, res) => {
   try {
     // Récupération des utilisateurs
     db.query(
-      "SELECT * FROM users WHERE role = 'radiologue' OR role = 'admin'",
+      "SELECT * FROM users WHERE role = 'radiologue' OR role = 'admin' OR role = 'secretaire'",
       (err, rows) => {
         if (err) {
           return res.status(500).json({

@@ -75,12 +75,11 @@ const updateOne = async (req, res) => {
 const deleteOne = async (req, res) => {
   try {
     const id = req.params.id;
-
     // Suppression du sous type
     db.query("DELETE FROM types WHERE id = ?", [id], (err, result) => {
       if (err) {
-        return res.status(500).json({
-          error: "Erreur lors de la suppression du type",
+        return res.status(401).json({
+          error: "Il y a des demandes liées à ce type",
         });
       }
       res.send({

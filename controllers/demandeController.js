@@ -103,22 +103,27 @@ const create = async (req, res) => {
                 { id: result2.insertId },
                 process.env.JWT_SECRET
               );
-              const info = await transporter.sendMail({
-                from: process.env.SMTP_USER,
-                to: email,
-                subject: "Demande radiologie",
-                html: `
-        <p>Bonjour ${nom_patient},</p>
-        <p>Votre demande de rendez-vous a été prise en compte.</p>
-        <p>Vous recevrez un email de confirmation dès qu'un médecin aura pris en charge votre demande.</p>
-        <p>Si vous voulez supprimer la demande, veuillez cliquez sur ce bouton</p>
-        <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a>
-      `,
-              });
-              res.send({
-                message: "Demande ajoutée avec succès",
-                id: result2.insertId,
-              });
+              try {
+                const info = await transporter.sendMail({
+                  from: process.env.SMTP_USER,
+                  to: email,
+                  subject: "Demande radiologie",
+                  html: `
+          <p>Bonjour ${nom_patient},</p>
+          <p>Votre demande de rendez-vous a été prise en compte.</p>
+          <p>Vous recevrez un email de confirmation dès qu'un médecin aura pris en charge votre demande.</p>
+          <p>Si vous voulez supprimer la demande, veuillez cliquez sur ce bouton</p>
+          <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a>
+        `,
+                });
+                res.send({
+                  message: "Demande ajoutée avec succès",
+                  id: result2.insertId,
+                });
+              } catch (error) {
+                console.log(error);
+                res.status(500).send({ error: "Erreur de l'envoi de l'email" });
+              }
             }
           );
         }
@@ -148,22 +153,27 @@ const create = async (req, res) => {
             { id: result2.insertId },
             process.env.JWT_SECRET
           );
-          const info = await transporter.sendMail({
-            from: process.env.SMTP_USER,
-            to: email,
-            subject: "Demande radiologie",
-            html: `
-              <p>Bonjour ${nom_patient},</p>
-              <p>Votre demande de rendez-vous a été prise en compte.</p>
-              <p>Vous recevrez un email de confirmation dès qu'un médecin aura pris en charge votre demande.</p>
-              <p>Si vous voulez supprimer la demande, veuillez cliquez sur ce bouton</p>
-              <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a>
-            `,
-          });
-          res.send({
-            message: "Demande ajoutée avec succès",
-            id: result2.insertId,
-          });
+          try {
+            const info = await transporter.sendMail({
+              from: process.env.SMTP_USER,
+              to: email,
+              subject: "Demande radiologie",
+              html: `
+                <p>Bonjour ${nom_patient},</p>
+                <p>Votre demande de rendez-vous a été prise en compte.</p>
+                <p>Vous recevrez un email de confirmation dès qu'un médecin aura pris en charge votre demande.</p>
+                <p>Si vous voulez supprimer la demande, veuillez cliquez sur ce bouton</p>
+                <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a>
+              `,
+            });
+            res.send({
+              message: "Demande ajoutée avec succès",
+              id: result2.insertId,
+            });
+          } catch (error) {
+            console.log(error);
+            res.status(500).send({ error: "Erreur de l'envoi de l'email" });
+          }
         }
       );
     }
@@ -205,7 +215,12 @@ const sendCodeConfirmation = async (req, res) => {
       });
     }
     const code = Math.floor(Math.random() * 1000000);
-    console.log(code);
+    const info = await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to: email,
+      subject: "Code de confirmation",
+      text: `Votre code de confirmation est ${code}`,
+    });
     db.query(
       "INSERT INTO codes (email, code) VALUES (?, ?)",
       [email, code],
@@ -215,12 +230,6 @@ const sendCodeConfirmation = async (req, res) => {
             error: "Erreur lors de la création du code",
           });
         }
-        const info = await transporter.sendMail({
-          from: process.env.SMTP_USER,
-          to: email,
-          subject: "Code de confirmation",
-          text: `Votre code de confirmation est ${code}`,
-        });
         return res.send({
           message: "Code envoyé avec succès",
         });
@@ -322,16 +331,23 @@ const changeStatus = async (req, res) => {
                   nom_type,
                   nom_sous_type,
                 } = result[0];
-                const info = await transporter.sendMail({
-                  from: process.env.SMTP_USER,
-                  to: email,
-                  subject: "Demande radiologie",
-                  html: `
-          <p> Bonjour ${nom_patient}, nous sommes ravis de vous confirmer votre rendez-vous pour l'examen d’imagerie médical ${nom_type} avec le type d'examen ${nom_sous_type}  le ${formaDate(
-                    date_rdv
-                  )}. Votre rendez-vous se tiendra à notre établissement situé à ${lieu}. Nous avons hâte de vous y accueillir.</p>
-        `,
-                });
+                try {
+                  const info = await transporter.sendMail({
+                    from: process.env.SMTP_USER,
+                    to: email,
+                    subject: "Demande radiologie",
+                    html: `
+            <p> Bonjour ${nom_patient}, nous sommes ravis de vous confirmer votre rendez-vous pour l'examen d’imagerie médical ${nom_type} avec le type d'examen ${nom_sous_type}  le ${formaDate(
+                      date_rdv
+                    )}. Votre rendez-vous se tiendra à notre établissement situé à ${lieu}. Nous avons hâte de vous y accueillir.</p>
+          `,
+                  });
+                } catch (error) {
+                  console.log(error);
+                  res
+                    .status(500)
+                    .send({ error: "Erreur de l'envoi de l'email" });
+                }
               }
             }
           );

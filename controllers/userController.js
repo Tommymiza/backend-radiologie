@@ -26,6 +26,15 @@ const create = async (req, res) => {
     //hashage du mot de passe
     const password = Math.random().toString(36).slice(-8);
     const hashedPassword = await bcrypt.hash(password, 10);
+    const info = await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to: email,
+      subject: "Compte radiologie",
+      html: `
+          <p>Bonjour ${nom},</p>
+          <p>Votre compte vient d'être créé, voici votre mot de passe <strong>${password}</strong></p>
+        `,
+    });
     //insertion dans la base de données
     db.query(
       "INSERT INTO users (nom, tel, email, password, adresse, rpps, role, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, 1)",
@@ -39,15 +48,6 @@ const create = async (req, res) => {
             result: err,
           });
         }
-        const info = await transporter.sendMail({
-          from: process.env.SMTP_USER,
-          to: email,
-          subject: "Compte radiologie",
-          html: `
-            <p>Bonjour ${nom},</p>
-            <p>Votre compte vient d'être créé, voici votre mot de passe <strong>${password}</strong></p>
-          `,
-        });
         return res.send({
           message: "Utilisateur créé avec succès",
         });

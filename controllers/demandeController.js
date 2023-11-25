@@ -2,7 +2,7 @@ const db = require("../db");
 const jwt = require("jsonwebtoken");
 const transporter = require("../mailconfig");
 const path = require("path");
-const {socket: io} = require("../socket");
+const { socket: io } = require("../socket");
 
 const formaDate = (dateString) => {
   const months = [
@@ -40,12 +40,26 @@ const create = async (req, res) => {
       id_medecin,
       code,
     } = req.body;
-
+    if (
+      !nom_patient ||
+      !email ||
+      !datenais ||
+      !tel ||
+      !code ||
+      nom_patient === "" ||
+      email === "" ||
+      datenais === "" ||
+      tel === "" ||
+      code === ""
+    ) {
+      return res.status(401).json({
+        error: "Veuillez remplir tous les champs",
+      });
+    }
     const files = req.file ? `/files/${req.file.filename}` : null;
     const rendez_vous = rdv === "null" ? null : rdv;
     const medecin = id_medecin === "null" ? null : id_medecin;
-
-    if (!id_medecin) {
+    if (!medecin) {
       db.query(
         "SELECT code FROM codes WHERE email = ? AND code = ?",
         [email, code],
@@ -110,6 +124,7 @@ const create = async (req, res) => {
         }
       );
     } else {
+      console.log(id_medecin);
       db.query(
         "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type,ordonnance, id_medecin) VALUES (?, ?, ?, ?, ?, ?,?, ?)",
         [
@@ -184,6 +199,11 @@ const deleteFromEmail = async (req, res) => {
 const sendCodeConfirmation = async (req, res) => {
   try {
     const { email } = req.body;
+    if (!email || email === "") {
+      return res.status(401).json({
+        error: "Veuillez remplir tous les champs",
+      });
+    }
     const code = Math.floor(Math.random() * 1000000);
     console.log(code);
     db.query(
@@ -271,6 +291,11 @@ const getMine = async (req, res) => {
 const changeStatus = async (req, res) => {
   try {
     const { id, lieu, date_rdv } = req.body;
+    if (!lieu || !date_rdv || lieu === "" || date_rdv === "") {
+      return res.status(401).json({
+        error: "Veuillez remplir tous les champs",
+      });
+    }
     db.query(
       "UPDATE demandes SET lieu = ?, date_rdv = ? WHERE id = ?",
       [lieu, date_rdv, id],

@@ -63,16 +63,7 @@ const create = async (req, res) => {
 
 const updateOne = async (req, res) => {
   try {
-    const { id, nom, adresse, tel, rpps, role } = req.body;
-    if (role !== "admin") {
-      const token = req.header("Authorization")?.split(" ")[1];
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-      if (decodedToken.id !== id) {
-        return res.status(401).send({
-          error: "Vous n'avez pas le droit de modifier cet utilisateur",
-        });
-      }
-    }
+    const { id, nom, adresse, tel, rpps } = req.body;
     db.query(
       "UPDATE users SET nom = ?, tel = ?, adresse = ?, rpps = ?, role = ? WHERE id = ?",
       [nom, tel, adresse, rpps, role, id],

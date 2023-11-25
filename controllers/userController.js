@@ -63,7 +63,7 @@ const create = async (req, res) => {
 
 const updateOne = async (req, res) => {
   try {
-    const { id, nom, adresse, tel, rpps } = req.body;
+    const { id, nom, adresse, tel, rpps, role } = req.body;
     db.query(
       "UPDATE users SET nom = ?, tel = ?, adresse = ?, rpps = ?, role = ? WHERE id = ?",
       [nom, tel, adresse, rpps, role, id],

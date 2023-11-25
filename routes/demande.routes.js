@@ -17,13 +17,13 @@ const upload = multer({
   storage,
 });
 router
-  .get("/", auth(["admin", "radiologue"]), demandeController.getAll)
+  .get("/", auth(["admin", "radiologue", "secretaire"]), demandeController.getAll)
   .get("/mine", auth(["medecin"]), demandeController.getMine)
-  .put("/update", auth(["admin", "radiologue"]), demandeController.changeStatus)
+  .put("/update", auth(["admin", "radiologue", "secretaire"]), demandeController.changeStatus)
   .post("/sendcode", demandeController.sendCodeConfirmation)
   .delete(
     "/delete/:id",
-    auth(["admin", "radiologue", "medecin"]),
+    auth(["admin", "radiologue", "secretaire", "medecin"]),
     demandeController.deleteOne
   )
   .post("/add", upload.single("ordonnance"), demandeController.create)

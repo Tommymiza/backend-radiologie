@@ -7,10 +7,8 @@ const checkToken = (role) => async (req, res, next) => {
         error: "Token invalide",
       });
     }
-
     const authorization = req.headers.authorization.split(" ");
     const token = authorization[1];
-
     db.query("SELECT * FROM users, tokens WHERE users.id = tokens.id_user AND token = ?", [
       token,
     ], (err, results) => {

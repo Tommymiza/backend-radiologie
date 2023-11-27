@@ -314,47 +314,47 @@ const changeStatus = async (req, res) => {
             error: "Erreur lors de la modification du statut",
           });
         } else {
-          db.query(
-            "SELECT d.email, d.nom_patient, d.lieu, d.date_rdv, t.nom_type, t.nom_sous_type FROM demandes d INNER JOIN types t ON d.id_type = t.id WHERE d.id = ?",
-            [id],
-            async (err, result) => {
-              if (err || result.length === 0) {
-                return res.status(401).json({
-                  error: "Demande inconnu",
-                });
-              } else {
-                const {
-                  email,
-                  nom_patient,
-                  lieu,
-                  date_rdv,
-                  nom_type,
-                  nom_sous_type,
-                } = result[0];
-                try {
-                  const info = await transporter.sendMail({
-                    from: process.env.SMTP_USER,
-                    to: email,
-                    subject: "Demande radiologie",
-                    html: `
-            <p> Bonjour ${nom_patient}, nous sommes ravis de vous confirmer votre rendez-vous pour l'examen d’imagerie médical ${nom_type} avec le type d'examen ${nom_sous_type}  le ${formaDate(
-                      date_rdv
-                    )}. Votre rendez-vous se tiendra à notre établissement situé à ${lieu}. Nous avons hâte de vous y accueillir.</p>
-          `,
-                  });
-                } catch (error) {
-                  console.log(error);
-                  res
-                    .status(500)
-                    .send({ error: "Erreur de l'envoi de l'email" });
-                }
-              }
-            }
-          );
+          // db.query(
+          //   "SELECT d.email, d.nom_patient, d.lieu, d.date_rdv, t.nom_type, t.nom_sous_type FROM demandes d INNER JOIN types t ON d.id_type = t.id WHERE d.id = ?",
+          //   [id],
+          //   async (err, result) => {
+          //     if (err || result.length === 0) {
+          //       return res.status(401).json({
+          //         error: "Demande inconnu",
+          //       });
+          //     } else {
+          //       const {
+          //         email,
+          //         nom_patient,
+          //         lieu,
+          //         date_rdv,
+          //         nom_type,
+          //         nom_sous_type,
+          //       } = result[0];
+          //       try {
+          //         const info = await transporter.sendMail({
+          //           from: process.env.SMTP_USER,
+          //           to: email,
+          //           subject: "Demande radiologie",
+          //           html: `
+          //   <p> Bonjour ${nom_patient}, nous sommes ravis de vous confirmer votre rendez-vous pour l'examen d’imagerie médical ${nom_type} avec le type d'examen ${nom_sous_type}  le ${formaDate(
+          //             date_rdv
+          //           )}. Votre rendez-vous se tiendra à notre établissement situé à ${lieu}. Nous avons hâte de vous y accueillir.</p>
+          // `,
+          //         });
+          //       } catch (error) {
+          //         console.log(error);
+          //         res
+          //           .status(500)
+          //           .send({ error: "Erreur de l'envoi de l'email" });
+          //       }
+          //     }
+          //   }
+          // );
+          res.send({
+            message: "Statut modifié avec succès",
+          });
         }
-        res.send({
-          message: "Statut modifié avec succès",
-        });
       }
     );
   } catch (err) {
@@ -368,18 +368,58 @@ const changeStatus = async (req, res) => {
 const deleteOne = async (req, res) => {
   try {
     const id = req.params.id;
-    db.query("DELETE FROM demandes WHERE id = ?", [id], (err, result) => {
-      if (err) {
-        return res.status(500).json({
-          error: "Erreur lors de la suppression de la demande",
-        });
+
+    db.query(
+      "SELECT d.email, d.nom_patient, d.lieu, d.date_rdv, t.nom_type, t.nom_sous_type FROM demandes d INNER JOIN types t ON d.id_type = t.id WHERE d.id = ?",
+      [id],
+      async (err, result) => {
+        if (err || result.length === 0) {
+          return res.status(401).json({
+            error: "Demande inconnue",
+          });
+        } else {
+          const {
+            email,
+            nom_patient,
+            lieu,
+            date_rdv,
+            nom_type,
+            nom_sous_type,
+          } = result[0];
+
+          try {
+            await transporter.sendMail({
+              from: process.env.SMTP_USER,
+              to: email,
+              subject: "Suppression du demande en radiologie",
+              html: `
+              <p> Bonjour ${nom_patient}, Nous vous informons que votre demande de rendez-vous médical a été annulée, soit en raison de détails dépassés, soit suite à votre souhait de ne pas poursuivre l'examen. Si vous avez des questions ou si vous souhaitez discuter de cette annulation, n'hésitez pas à nous contacter pour obtenir plus d'informations.</p>
+            `,
+            });
+
+            db.query(
+              "DELETE FROM demandes WHERE id = ?",
+              [id],
+              (err, result) => {
+                if (err) {
+                  return res.status(500).json({
+                    error: "Erreur lors de la suppression de la demande",
+                  });
+                } else {
+                  res.send({
+                    message: "Demande supprimée avec succès",
+                  });
+                }
+              }
+            );
+          } catch (error) {
+            console.log(error);
+            res.status(500).send({ error: "Erreur de l'envoi de l'email" });
+          }
+        }
       }
-      res.send({
-        message: "Demande supprimée avec succès",
-      });
-    });
+    );
   } catch (err) {
-    console.log(err);
     res.status(500).send({
       error: "Erreur lors de la suppression de la demande",
     });

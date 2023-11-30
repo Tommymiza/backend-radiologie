@@ -109,11 +109,15 @@ const create = async (req, res) => {
                   to: email,
                   subject: "Demande radiologie",
                   html: `
-          <p>Bonjour ${nom_patient},</p>
-          <p>Votre demande de rendez-vous a été prise en compte.</p>
-          <p>Vous recevrez un email de confirmation dès qu'un médecin aura pris en charge votre demande.</p>
-          <p>Si vous voulez supprimer la demande, veuillez cliquez sur ce bouton</p>
-          <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a>
+                  <p>Madame, Monsieur, </p>
+                  <p>Votre demande de rendez-vous a été prise en compte.</p>
+                  <p>L'équipe médicale prendra contact avec vous prochainement, afin de programmer votre rendez-vous dans le délai souhaité.</p>
+                  <p>Pour annuler la demande, veuillez cliquer ce bouton
+                  <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a> </p>
+                  
+            <p style="color: #652191; font-size:20px">Centres d'Imagerie Médicale </p>
+            <p style="color: #652191; font-size:20px">Radiologie91</p>
+            <div><a href="${process.env.FRONT_URL}">${process.env.FRONT_URL}<a/></div>
         `,
                 });
                 res.send({
@@ -159,11 +163,15 @@ const create = async (req, res) => {
               to: email,
               subject: "Demande radiologie",
               html: `
-                <p>Bonjour ${nom_patient},</p>
+                <p>Madame, Monsieur, </p>
                 <p>Votre demande de rendez-vous a été prise en compte.</p>
-                <p>Vous recevrez un email de confirmation dès qu'un médecin aura pris en charge votre demande.</p>
-                <p>Si vous voulez supprimer la demande, veuillez cliquez sur ce bouton</p>
-                <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a>
+                <p>L'équipe médicale prendra contact avec vous prochainement, afin de programmer votre rendez-vous dans le délai souhaité.</p>
+                <p>Pour annuler la demande, veuillez cliquer ce bouton
+                <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a> </p>
+                
+            <p style="color: #652191; font-size:20px">Centres d'Imagerie Médicale </p>
+            <p style="color: #652191; font-size:20px">Radiologie91</p>
+            <div><a href="${process.env.FRONT_URL}">${process.env.FRONT_URL}<a/></div>
               `,
             });
             res.send({
@@ -221,6 +229,7 @@ const sendCodeConfirmation = async (req, res) => {
       subject: "Code de confirmation",
       text: `Votre code de confirmation est ${code}`,
     });
+    console.log(code);
     db.query(
       "INSERT INTO codes (email, code) VALUES (?, ?)",
       [email, code],
@@ -393,7 +402,14 @@ const deleteOne = async (req, res) => {
               to: email,
               subject: "Suppression du demande en radiologie",
               html: `
-              <p> Bonjour ${nom_patient}, Nous vous informons que votre demande de rendez-vous médical a été annulée, soit en raison de détails dépassés, soit suite à votre souhait de ne pas poursuivre l'examen. Si vous avez des questions ou si vous souhaitez discuter de cette annulation, n'hésitez pas à nous contacter pour obtenir plus d'informations.</p>
+              <p>Madame, Monsieur, </p>
+              <p>Nous regrettons de ne pouvoir donner suite à votre demande de rendez-vous dans le délai souhaité. </p>
+              <p>Nous vous remercions de votre compréhension. </p>
+              <p>Bonne journée </p>
+              
+            <p style="color: #652191; font-size:20px">Centres d'Imagerie Médicale </p>
+            <p style="color: #652191; font-size:20px">Radiologie91</p>
+            <div><a href="${process.env.FRONT_URL}">${process.env.FRONT_URL}<a/></div>
             `,
             });
 

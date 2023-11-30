@@ -5,6 +5,7 @@ const db = require("./db");
 const express = require("express");
 const cron = require("node-cron");
 const { socket: io, server, app } = require("./socket");
+const transporter = require("./mailconfig");
 io.on("connection", async (socket) => {
   io.emit("online", {
     users: (await io.fetchSockets()).map((s) => ({
@@ -118,19 +119,61 @@ app.get("/", async (req, res) => {
 });
 
 // Tâche cron planifiée à chaque  minuit  (00:00)
+// cron.schedule("05 00 * * *", () => {
+//   const sql = `DELETE FROM demandes WHERE rdv < CURDATE() AND (lieu = '' OR lieu IS NULL) AND rdv IS NOT NULL`;
+//   db.query(sql, (err, result) => {
+//     if (err) {
+//       console.error(
+//         "Erreur lors de la suppression des entrées dépassées :",
+//         err
+//       );
+//       return;
+//     }
+//     console.log(`${result?.affectedRows} demandes supprimées.`);
+//   });
+// });
+
+// Tâche cron planifiée à chaque  minuit  (00:05)
 cron.schedule("05 00 * * *", () => {
-  const sql = `DELETE FROM demandes WHERE rdv < CURDATE() AND (lieu = '' OR lieu IS NULL) AND rdv IS NOT NULL`;
-  db.query(sql, (err, result) => {
+  const sql = `SELECT email FROM demandes  WHERE rdv < CURDATE() AND (lieu = '' OR lieu IS NULL) AND rdv IS NOT NULL`;
+  db.query(sql, async (err, rows) => {
     if (err) {
-      console.error(
-        "Erreur lors de la suppression des entrées dépassées :",
-        err
-      );
+      console.error("Error querying database:", err);
       return;
     }
-    console.log(`${result?.affectedRows} demandes supprimées.`);
+
+    if (rows.length > 0) {
+      const emails = rows.map((item) => item.email);
+      await transporter.sendMail({
+        from: process.env.SMTP_USER,
+        to: emails,
+        subject: "Suppression de la demande",
+        html: `
+            <p>Madame, Monsieur, </p>
+            <p>Nous regrettons de ne pouvoir donner suite à votre demande de rendez-vous dans le délai souhaité. </p>
+            <p>Nous vous remercions de votre compréhension. </p>
+            <p>Bonne journée </p>
+            <p style="color: #652191; font-size:20px">Centres d'Imagerie Médicale </p>
+            <p style="color: #652191; font-size:20px">Radiologie91</p>
+            <div><a href="${process.env.FRONT_URL}">${process.env.FRONT_URL}<a/></div>
+            `,
+      });
+
+      // Perform deletion after sending emails
+      const deleteSQL = `DELETE FROM demandes WHERE rdv < CURDATE() AND (lieu = '' OR lieu IS NULL) AND rdv IS NOT NULL`;
+      db.query(deleteSQL, (deleteErr, result) => {
+        if (deleteErr) {
+          console.error("Error deleting entries:", deleteErr);
+          return;
+        }
+        console.log(`${result?.affectedRows} demandes supprimées.`);
+      });
+    } else {
+      console.log("No entries to delete.");
+    }
   });
 });
+
 server.listen(process.env.PORT, (err) => {
   if (err) throw err;
   console.log(`Server running on port: ${process.env.PORT}`);

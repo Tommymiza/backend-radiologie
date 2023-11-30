@@ -17,6 +17,12 @@ router
   .post("/signup", userController.signup)
   .post("/verify", auth(["admin"]), userController.verifyMedecin)
   .put("/update", auth(["admin", "medecin"]), userController.updateOne)
+  .put(
+    "/change-pass/:id",
+    auth(["admin", "medecin"]),
+    userController.changePassword
+  )
+  .post("/forgot-pass", userController.forgotPassword)
   .delete("/delete/:id", auth(["admin"]), userController.deleteOne)
   .post(
     "/logout",

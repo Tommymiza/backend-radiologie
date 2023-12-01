@@ -7,62 +7,7 @@ const cron = require("node-cron");
 const { socket: io, server, app } = require("./socket");
 const transporter = require("./mailconfig");
 io.on("connection", async (socket) => {
-  let users = (await io.fetchSockets()).map((s) => ({
-    id: s.handshake.query.id_user,
-    lieu: s.handshake.query.lieu,
-  }));
-  db.query(
-    "SELECT * FROM users WHERE role = 'radiologue' OR role = 'admin' OR role = 'secretaire'",
-    async (err, rows1) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      users = rows1.map((u) => {
-        const user = users.find((r) => r.id == u.id);
-        if (user) {
-          return {
-            ...u,
-            lieu: user.lieu,
-          };
-        }
-        return u;
-      });
-
-      for (let i of rows1) {
-        const last_message = await new Promise((resolve, reject) => {
-          db.query(
-            `SELECT * FROM messages WHERE id_envoyeur = ?  OR id_receveur = ? ORDER BY created_at DESC LIMIT 1`,
-            [i.id, i.id],
-            (err, rows) => {
-              if (err) {
-                console.log(err);
-                reject(err);
-                return;
-              }
-              if (rows.length === 0) {
-                resolve(null);
-                return;
-              }
-              resolve(rows[0]);
-            }
-          );
-        });
-        users = users.map((u) => {
-          if (u.id == i.id) {
-            return {
-              ...u,
-              last_message,
-            };
-          }
-          return u;
-        });
-      }
-      io.emit("online", {
-        users,
-      });
-    }
-  );
+  io.emit("newdata");
   socket.on("online", async () => {
     let users = (await io.fetchSockets()).map((s) => ({
       id: s.handshake.query.id_user,
@@ -89,8 +34,13 @@ io.on("connection", async (socket) => {
         for (let i of rows1) {
           const last_message = await new Promise((resolve, reject) => {
             db.query(
-              `SELECT * FROM messages WHERE id_envoyeur = ?  OR id_receveur = ? ORDER BY created_at DESC LIMIT 1`,
-              [i.id, i.id],
+              `SELECT * FROM messages WHERE (id_envoyeur = ? AND id_receveur = ?)  OR (id_envoyeur = ? AND id_receveur = ?) ORDER BY created_at DESC LIMIT 1`,
+              [
+                i.id,
+                parseInt(socket.handshake.query.id_user),
+                parseInt(socket.handshake.query.id_user),
+                i.id,
+              ],
               (err, rows) => {
                 if (err) {
                   console.log(err);
@@ -115,7 +65,7 @@ io.on("connection", async (socket) => {
             return u;
           });
         }
-        io.emit("online", {
+        socket.emit("online", {
           users,
         });
       }
@@ -193,62 +143,7 @@ io.on("connection", async (socket) => {
     }
   });
   socket.on("disconnect", async (reason) => {
-    let users = (await io.fetchSockets()).map((s) => ({
-      id: s.handshake.query.id_user,
-      lieu: s.handshake.query.lieu,
-    }));
-    db.query(
-      "SELECT * FROM users WHERE role = 'radiologue' OR role = 'admin' OR role = 'secretaire'",
-      async (err, rows1) => {
-        if (err) {
-          console.log(err);
-          return;
-        }
-        users = rows1.map((u) => {
-          const user = users.find((r) => r.id == u.id);
-          if (user) {
-            return {
-              ...u,
-              lieu: user.lieu,
-            };
-          }
-          return u;
-        });
-
-        for (let i of rows1) {
-          const last_message = await new Promise((resolve, reject) => {
-            db.query(
-              `SELECT * FROM messages WHERE id_envoyeur = ?  OR id_receveur = ? ORDER BY created_at DESC LIMIT 1`,
-              [i.id, i.id],
-              (err, rows) => {
-                if (err) {
-                  console.log(err);
-                  reject(err);
-                  return;
-                }
-                if (rows.length === 0) {
-                  resolve(null);
-                  return;
-                }
-                resolve(rows[0]);
-              }
-            );
-          });
-          users = users.map((u) => {
-            if (u.id == i.id) {
-              return {
-                ...u,
-                last_message,
-              };
-            }
-            return u;
-          });
-        }
-        io.emit("online", {
-          users,
-        });
-      }
-    );
+    io.emit("newdata");
   });
 });
 app.use(

@@ -49,7 +49,7 @@ io.on("connection", async (socket) => {
           );
         });
         users = users.map((u) => {
-          if (u.id === i.id) {
+          if (u.id == i.id) {
             return {
               ...u,
               last_message,
@@ -106,7 +106,7 @@ io.on("connection", async (socket) => {
             );
           });
           users = users.map((u) => {
-            if (u.id === i.id) {
+            if (u.id == i.id) {
               return {
                 ...u,
                 last_message,
@@ -235,7 +235,7 @@ io.on("connection", async (socket) => {
             );
           });
           users = users.map((u) => {
-            if (u.id === i.id) {
+            if (u.id == i.id) {
               return {
                 ...u,
                 last_message,

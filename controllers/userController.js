@@ -325,6 +325,13 @@ const forgotPassword = async (req, res) => {
             error: "L'utilisateur n'existe pas",
           });
         }
+
+        if (rows[0].role !== 'medecin') {
+          return res.status(401).send({
+            error: "Vous ne pouvez pas réinitialiser le mot de passe à cause du role que vous avez",
+          });
+        }
+
         try {
           await transporter.sendMail({
             from: process.env.SMTP_USER,

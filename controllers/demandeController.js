@@ -402,9 +402,8 @@ const changeStatus = async (req, res) => {
 const deleteOne = async (req, res) => {
   try {
     const id = req.params.id;
-
     db.query(
-      "SELECT d.email, d.nom_patient, d.lieu, d.date_rdv, t.nom_type, t.nom_sous_type FROM demandes d INNER JOIN types t ON d.id_type = t.id WHERE d.id = ?",
+      "SELECT d.email, d.date_rdv, d.ordonnance FROM demandes d WHERE d.id = ?",
       [id],
       async (err, result) => {
         if (err || result.length === 0) {
@@ -414,13 +413,9 @@ const deleteOne = async (req, res) => {
         } else {
           const {
             email,
-            nom_patient,
-            lieu,
-            date_rdv,
-            nom_type,
-            nom_sous_type,
+            ordonnance,
           } = result[0];
-
+          
           try {
             await transporter.sendMail({
               from: process.env.SMTP_USER,
@@ -437,12 +432,15 @@ const deleteOne = async (req, res) => {
             <div><a href="${process.env.FRONT_URL}">${process.env.FRONT_URL}<a/></div>
             `,
             });
-
+            if (ordonnance) {
+              fs.unlinkSync(path.join(__dirname, `../upload${ordonnance}`));
+            }
             db.query(
               "DELETE FROM demandes WHERE id = ?",
               [id],
               (err, result) => {
                 if (err) {
+                  console.log(err)
                   return res.status(500).json({
                     error: "Erreur lors de la suppression de la demande",
                   });
@@ -461,6 +459,7 @@ const deleteOne = async (req, res) => {
       }
     );
   } catch (err) {
+    console.log(err);
     res.status(500).send({
       error: "Erreur lors de la suppression de la demande",
     });

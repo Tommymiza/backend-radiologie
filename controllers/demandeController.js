@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const transporter = require("../mailconfig");
 const path = require("path");
 const { socket: io } = require("../socket");
+const fs = require("fs");
 
 const formaDate = (dateString) => {
   const months = [
@@ -81,7 +82,7 @@ const create = async (req, res) => {
             }
           );
           db.query(
-            "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_medecin, ordonnance) VALUES (?, ?, ?, ?, ?, ?,?, ?)",
+            "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, id_medecin, ordonnance) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             [
               nom_patient,
               email,
@@ -89,8 +90,8 @@ const create = async (req, res) => {
               tel,
               rendez_vous,
               id_type,
-              files,
               medecin,
+              files,
             ],
             async (err2, result2) => {
               if (err2) {
@@ -133,9 +134,8 @@ const create = async (req, res) => {
         }
       );
     } else {
-      console.log(id_medecin);
       db.query(
-        "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type,ordonnance, id_medecin) VALUES (?, ?, ?, ?, ?, ?,?, ?)",
+        "INSERT INTO demandes (nom_patient, email, datenais, tel, rdv, id_type, ordonnance, id_medecin) VALUES (?, ?, ?, ?, ?, ?,?, ?)",
         [
           nom_patient,
           email,
@@ -197,15 +197,40 @@ const deleteFromEmail = async (req, res) => {
   try {
     const token = req.query.token;
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decodedToken);
     if (!decodedToken) {
       return res.status(401).json({
         error: "Requête invalide !",
       });
     }
-    db.query("DELETE FROM demandes WHERE id = ?", [decodedToken.id]);
-    io.emit("get demande");
-    res.sendFile(path.join(__dirname, "../views/deleteDemande.html"));
+    db.query(
+      "SELECT * FROM demandes WHERE id = ?",
+      [decodedToken.id],
+      (err, result) => {
+        if (err || result.length === 0) {
+          return res.status(401).json({
+            error: "Demande inconnue",
+          });
+        }
+        if (result[0].ordonnance) {
+          fs.unlinkSync(
+            path.join(__dirname, `../upload${result[0].ordonnance}`)
+          );
+        }
+        db.query(
+          "DELETE FROM demandes WHERE id = ?",
+          [decodedToken.id],
+          (err, result) => {
+            if (err) {
+              return res.status(500).json({
+                error: "Erreur lors de la suppression de la demande",
+              });
+            }
+            io.emit("get demande");
+            res.sendFile(path.join(__dirname, "../views/deleteDemande.html"));
+          }
+        );
+      }
+    );
   } catch (error) {
     console.log(error);
     res.status(500).send({

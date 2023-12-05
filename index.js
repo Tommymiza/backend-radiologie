@@ -4,6 +4,8 @@ const globalRoutes = require("./routes/index.routes");
 const db = require("./db");
 const express = require("express");
 const cron = require("node-cron");
+const path = require("path");
+const fs = require("fs");
 const { socket: io, server, app } = require("./socket");
 const transporter = require("./mailconfig");
 io.on("connection", async (socket) => {
@@ -168,21 +170,6 @@ app.get("/", async (req, res) => {
   }
 });
 
-// Tâche cron planifiée à chaque  minuit  (00:00)
-// cron.schedule("05 00 * * *", () => {
-//   const sql = `DELETE FROM demandes WHERE rdv < CURDATE() AND (lieu = '' OR lieu IS NULL) AND rdv IS NOT NULL`;
-//   db.query(sql, (err, result) => {
-//     if (err) {
-//       console.error(
-//         "Erreur lors de la suppression des entrées dépassées :",
-//         err
-//       );
-//       return;
-//     }
-//     console.log(`${result?.affectedRows} demandes supprimées.`);
-//   });
-// });
-
 // Tâche cron planifiée à chaque  minuit  (00:05)
 cron.schedule("05 00 * * *", () => {
   const sql = `SELECT email FROM demandes  WHERE rdv < CURDATE() AND (lieu = '' OR lieu IS NULL) AND rdv IS NOT NULL`;
@@ -191,7 +178,6 @@ cron.schedule("05 00 * * *", () => {
       console.error("Error querying database:", err);
       return;
     }
-
     if (rows.length > 0) {
       const emails = rows.map((item) => item.email);
       await transporter.sendMail({
@@ -208,7 +194,23 @@ cron.schedule("05 00 * * *", () => {
             <div><a href="${process.env.FRONT_URL}">${process.env.FRONT_URL}<a/></div>
             `,
       });
-
+      db.query("SELECT * FROM demandes WHERE rdv < CURDATE() AND (lieu = '' OR lieu IS NULL) AND rdv IS NOT NULL", async (err, rows) => {
+        if (err) {
+          console.error("Error querying database:", err);
+          return;
+        }
+        if (rows.length > 0) {
+          for(let i of rows){
+            if(i.ordonnance){
+              fs.unlinkSync(
+                path.join(__dirname, `../upload${result[0].ordonnance}`)
+              );
+            }
+          }
+        } else {
+          console.log("No entries to delete.");
+        }
+      });
       // Perform deletion after sending emails
       const deleteSQL = `DELETE FROM demandes WHERE rdv < CURDATE() AND (lieu = '' OR lieu IS NULL) AND rdv IS NOT NULL`;
       db.query(deleteSQL, (deleteErr, result) => {

@@ -31,24 +31,14 @@ const formaDate = (dateString) => {
 
 const create = async (req, res) => {
   try {
-    const {
-      nom_patient,
-      email,
-      datenais,
-      tel,
-      rdv,
-      id_type,
-      id_medecin,
-      code,
-    } = req.body;
+    const { nom_patient, datenais, tel, rdv, id_type, id_medecin, code } =
+      req.body;
     if (
       !nom_patient ||
-      !email ||
       !datenais ||
       !tel ||
       !code ||
       nom_patient === "" ||
-      email === "" ||
       datenais === "" ||
       tel === "" ||
       code === ""
@@ -57,6 +47,7 @@ const create = async (req, res) => {
         error: "Veuillez remplir tous les champs",
       });
     }
+    const email = req.body.email !== "null" ? req.body.email : null;
     const files = req.file ? `/files/${req.file.filename}` : null;
     const rendez_vous = rdv === "null" ? null : rdv;
     const medecin = id_medecin === "null" ? null : id_medecin;
@@ -105,22 +96,25 @@ const create = async (req, res) => {
                 process.env.JWT_SECRET
               );
               try {
-                const info = await transporter.sendMail({
-                  from: process.env.SMTP_USER,
-                  to: email,
-                  subject: "Demande radiologie",
-                  html: `
-                  <p>Madame, Monsieur, </p>
-                  <p>Votre demande de rendez-vous a été prise en compte.</p>
-                  <p>L'équipe médicale prendra contact avec vous prochainement, afin de programmer votre rendez-vous dans le délai souhaité.</p>
-                  <p>Pour annuler la demande, veuillez cliquer ce bouton
-                  <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a> </p>
-                  
-            <p style="color: #652191; font-size:20px">Centres d'Imagerie Médicale </p>
-            <p style="color: #652191; font-size:20px">Radiologie91</p>
-            <div><a href="${process.env.FRONT_URL}">${process.env.FRONT_URL}<a/></div>
-        `,
-                });
+                if (email) {
+                  const info = await transporter.sendMail({
+                    from: process.env.SMTP_USER,
+                    to: email,
+                    subject: "Demande radiologie",
+                    html: `
+                    <p>Madame, Monsieur, </p>
+                    <p>Votre demande de rendez-vous a été prise en compte.</p>
+                    <p>L'équipe médicale prendra contact avec vous prochainement, afin de programmer votre rendez-vous dans le délai souhaité.</p>
+                    <p>Pour annuler la demande, veuillez cliquer ce bouton
+                    <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a> </p>
+                    
+              <p style="color: #652191; font-size:20px">Centres d'Imagerie Médicale </p>
+              <p style="color: #652191; font-size:20px">Radiologie91</p>
+              <div><a href="${process.env.FRONT_URL}">${process.env.FRONT_URL}<a/></div>
+          `,
+                  });
+                }
+                io.emit("get demande");
                 res.send({
                   message: "Demande ajoutée avec succès",
                   id: result2.insertId,
@@ -158,22 +152,25 @@ const create = async (req, res) => {
             process.env.JWT_SECRET
           );
           try {
-            const info = await transporter.sendMail({
-              from: process.env.SMTP_USER,
-              to: email,
-              subject: "Demande radiologie",
-              html: `
-                <p>Madame, Monsieur, </p>
-                <p>Votre demande de rendez-vous a été prise en compte.</p>
-                <p>L'équipe médicale prendra contact avec vous prochainement, afin de programmer votre rendez-vous dans le délai souhaité.</p>
-                <p>Pour annuler la demande, veuillez cliquer ce bouton
-                <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a> </p>
-                
-            <p style="color: #652191; font-size:20px">Centres d'Imagerie Médicale </p>
-            <p style="color: #652191; font-size:20px">Radiologie91</p>
-            <div><a href="${process.env.FRONT_URL}">${process.env.FRONT_URL}<a/></div>
-              `,
-            });
+            if (email) {
+              const info = await transporter.sendMail({
+                from: process.env.SMTP_USER,
+                to: email,
+                subject: "Demande radiologie",
+                html: `
+                  <p>Madame, Monsieur, </p>
+                  <p>Votre demande de rendez-vous a été prise en compte.</p>
+                  <p>L'équipe médicale prendra contact avec vous prochainement, afin de programmer votre rendez-vous dans le délai souhaité.</p>
+                  <p>Pour annuler la demande, veuillez cliquer ce bouton
+                  <a href="${process.env.DOMAIN}/api/delete/demande?token=${linktoken}">Supprimer la demande</a> </p>
+                  
+              <p style="color: #652191; font-size:20px">Centres d'Imagerie Médicale </p>
+              <p style="color: #652191; font-size:20px">Radiologie91</p>
+              <div><a href="${process.env.FRONT_URL}">${process.env.FRONT_URL}<a/></div>
+                `,
+              });
+            }
+            io.emit("get demande");
             res.send({
               message: "Demande ajoutée avec succès",
               id: result2.insertId,
@@ -348,43 +345,46 @@ const changeStatus = async (req, res) => {
             error: "Erreur lors de la modification du statut",
           });
         } else {
-          // db.query(
-          //   "SELECT d.email, d.nom_patient, d.lieu, d.date_rdv, t.nom_type, t.nom_sous_type FROM demandes d INNER JOIN types t ON d.id_type = t.id WHERE d.id = ?",
-          //   [id],
-          //   async (err, result) => {
-          //     if (err || result.length === 0) {
-          //       return res.status(401).json({
-          //         error: "Demande inconnu",
-          //       });
-          //     } else {
-          //       const {
-          //         email,
-          //         nom_patient,
-          //         lieu,
-          //         date_rdv,
-          //         nom_type,
-          //         nom_sous_type,
-          //       } = result[0];
-          //       try {
-          //         const info = await transporter.sendMail({
-          //           from: process.env.SMTP_USER,
-          //           to: email,
-          //           subject: "Demande radiologie",
-          //           html: `
-          //   <p> Bonjour ${nom_patient}, nous sommes ravis de vous confirmer votre rendez-vous pour l'examen d’imagerie médical ${nom_type} avec le type d'examen ${nom_sous_type}  le ${formaDate(
-          //             date_rdv
-          //           )}. Votre rendez-vous se tiendra à notre établissement situé à ${lieu}. Nous avons hâte de vous y accueillir.</p>
-          // `,
-          //         });
-          //       } catch (error) {
-          //         console.log(error);
-          //         res
-          //           .status(500)
-          //           .send({ error: "Erreur de l'envoi de l'email" });
-          //       }
-          //     }
-          //   }
-          // );
+          db.query(
+            "SELECT d.email, d.nom_patient, d.lieu, d.date_rdv, t.nom_type, t.nom_sous_type FROM demandes d INNER JOIN types t ON d.id_type = t.id WHERE d.id = ?",
+            [id],
+            async (err, result) => {
+              if (err || result.length === 0) {
+                return res.status(401).json({
+                  error: "Demande inconnu",
+                });
+              } else {
+                const {
+                  email,
+                  nom_patient,
+                  lieu,
+                  date_rdv,
+                  nom_type,
+                  nom_sous_type,
+                } = result[0];
+                try {
+                  if (email) {
+                    const info = await transporter.sendMail({
+                      from: process.env.SMTP_USER,
+                      to: email,
+                      subject: "Demande radiologie",
+                      html: `
+              <p> Bonjour ${nom_patient}, nous sommes ravis de vous confirmer votre rendez-vous pour l'examen d’imagerie médical ${nom_type} avec le type d'examen ${nom_sous_type}  le ${formaDate(
+                        date_rdv
+                      )}. Votre rendez-vous se tiendra à notre établissement situé à ${lieu}. Nous avons hâte de vous y accueillir.</p>
+            `,
+                    });
+                  }
+                } catch (error) {
+                  console.log(error);
+                  res
+                    .status(500)
+                    .send({ error: "Erreur de l'envoi de l'email" });
+                }
+              }
+            }
+          );
+          io.emit("get demande");
           res.send({
             message: "Statut modifié avec succès",
           });
@@ -411,27 +411,25 @@ const deleteOne = async (req, res) => {
             error: "Demande inconnue",
           });
         } else {
-          const {
-            email,
-            ordonnance,
-          } = result[0];
-          
+          const { email, ordonnance } = result[0];
           try {
-            await transporter.sendMail({
-              from: process.env.SMTP_USER,
-              to: email,
-              subject: "Suppression du demande en radiologie",
-              html: `
-              <p>Madame, Monsieur, </p>
-              <p>Nous regrettons de ne pouvoir donner suite à votre demande de rendez-vous dans le délai souhaité. </p>
-              <p>Nous vous remercions de votre compréhension. </p>
-              <p>Bonne journée </p>
-              
-            <p style="color: #652191; font-size:20px">Centres d'Imagerie Médicale </p>
-            <p style="color: #652191; font-size:20px">Radiologie91</p>
-            <div><a href="${process.env.FRONT_URL}">${process.env.FRONT_URL}<a/></div>
-            `,
-            });
+            if (email) {
+              await transporter.sendMail({
+                from: process.env.SMTP_USER,
+                to: email,
+                subject: "Suppression du demande en radiologie",
+                html: `
+                <p>Madame, Monsieur, </p>
+                <p>Nous regrettons de ne pouvoir donner suite à votre demande de rendez-vous dans le délai souhaité. </p>
+                <p>Nous vous remercions de votre compréhension. </p>
+                <p>Bonne journée </p>
+                
+              <p style="color: #652191; font-size:20px">Centres d'Imagerie Médicale </p>
+              <p style="color: #652191; font-size:20px">Radiologie91</p>
+              <div><a href="${process.env.FRONT_URL}">${process.env.FRONT_URL}<a/></div>
+              `,
+              });
+            }
             if (ordonnance) {
               fs.unlinkSync(path.join(__dirname, `../upload${ordonnance}`));
             }
@@ -440,11 +438,12 @@ const deleteOne = async (req, res) => {
               [id],
               (err, result) => {
                 if (err) {
-                  console.log(err)
+                  console.log(err);
                   return res.status(500).json({
                     error: "Erreur lors de la suppression de la demande",
                   });
                 } else {
+                  io.emit("get demande");
                   res.send({
                     message: "Demande supprimée avec succès",
                   });
@@ -484,6 +483,7 @@ const deleteMine = async (req, res) => {
             error: "Erreur lors de la suppression de la demande",
           });
         }
+        io.emit("get demande");
         res.send({
           message: "Demande supprimée avec succès",
         });

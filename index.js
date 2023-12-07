@@ -88,9 +88,10 @@ io.on("connection", async (socket) => {
       if ((await io.to(data.room).fetchSockets()).length === 2) {
         lu = 1;
       }
+      let date =new Date(Date.now()).toString();
       db.query(
-        "INSERT INTO messages (id_envoyeur, id_receveur, message, lu) VALUES (?, ?, ?, ?)",
-        [data.id, data.dest_id, data.message, lu],
+        "INSERT INTO messages (id_envoyeur, id_receveur, message, lu, created_at) VALUES (?, ?, ?, ?, ?)",
+        [data.id, data.dest_id, data.message, lu, date],
         (err, rows) => {
           if (err) {
             console.log(err);

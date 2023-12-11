@@ -58,7 +58,7 @@ io.on("connection", async (socket) => {
                 }
               );
             }else{
-              console.log(socket.handshake.query.id_user);
+              console.log(socket.handshake.query);
             }
           });
           users = users.map((u) => {

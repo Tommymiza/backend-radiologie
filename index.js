@@ -36,7 +36,7 @@ io.on("connection", async (socket) => {
         for (let i of rows1) {
           const last_message = await new Promise((resolve, reject) => {
             db.query(
-              `SELECT * FROM messages WHERE (id_envoyeur = ? AND id_receveur = ?)  OR (id_envoyeur = ? AND id_receveur = ?) ORDER BY created_at DESC LIMIT 1`,
+              `SELECT * FROM messages WHERE (id_envoyeur = ? AND id_receveur = ?)  OR (id_envoyeur = ? AND id_receveur = ?) ORDER BY ajout DESC LIMIT 1`,
               [
                 i.id,
                 parseInt(socket.handshake.query.id_user),

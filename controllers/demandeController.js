@@ -142,6 +142,7 @@ const create = async (req, res) => {
         ],
         async (err2, result2) => {
           if (err2) {
+            console.log(err2);
             return res.status(500).json({
               error: "Erreur lors de la création de la demande",
               message: err2,
@@ -497,6 +498,78 @@ const deleteMine = async (req, res) => {
   }
 };
 
+function getMonthIndex(month) {
+  const months = [
+    "janvier",
+    "février",
+    "mars",
+    "avril",
+    "mai",
+    "juin",
+    "juillet",
+    "août",
+    "septembre",
+    "octobre",
+    "novembre",
+    "décembre",
+  ];
+  return months.indexOf(month);
+}
+
+const getStats = async (req, res) => {
+  const sql =
+    "SELECT types.nom_type AS nom_type, CASE WHEN MONTH(created_at) = 1 THEN 'janvier' WHEN MONTH(created_at) = 2 THEN 'février' WHEN MONTH(created_at) = 3 THEN 'mars' WHEN MONTH(created_at) = 4 THEN 'avril' WHEN MONTH(created_at) = 5 THEN 'mai' WHEN MONTH(created_at) = 6 THEN 'juin' WHEN MONTH(created_at) = 7 THEN 'juillet' WHEN MONTH(created_at) = 8 THEN 'août' WHEN MONTH(created_at) = 9 THEN 'septembre' WHEN MONTH(created_at) = 10 THEN 'octobre' WHEN MONTH(created_at) = 11 THEN 'novembre' ELSE 'décembre' END AS mois, COUNT(*) AS nombre_demandes FROM demandes INNER JOIN types ON demandes.id_type = types.id GROUP BY types.nom_type, MONTH(created_at) ORDER BY types.nom_type, MONTH(created_at)";
+  try {
+    db.query(sql, (err, result) => {
+      const input = result;
+      let output = [];
+      let dataByType = {};
+
+      // Remplissage de l'objet avec les données de l'entrée
+      input.forEach((entry) => {
+        const color = "#" + Math.floor(Math.random() * 16777215).toString(16);
+        if (!dataByType[entry.nom_type]) {
+          dataByType[entry.nom_type] = {
+            label: entry.nom_type,
+            backgroundColor: color,
+            borderColor: color, // Génération d'une couleur aléatoire
+            data: Array(12).fill(0), // Remplissage d'un tableau de 12 éléments avec des zéros pour chaque mois
+          };
+        }
+        const monthIndex = getMonthIndex(entry.mois); // Fonction pour obtenir l'index du mois dans le tableau (0 pour janvier, 1 pour février, etc.)
+        dataByType[entry.nom_type].data[monthIndex] = entry.nombre_demandes; // Mise à jour du nombre de demandes pour le mois spécifique
+      });
+      output = Object.values(dataByType);
+
+      res.send({
+        statistiqueDemandes: output,
+      });
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({
+      error: "Erreur lors de requete pour les statistiques",
+    });
+  }
+};
+
+const getStatsMed = async (req, res) => {
+  const sql =
+    "SELECT u.nom AS medecin, COUNT(*) AS nombre_demandes, SUM(CASE WHEN MONTH(d.created_at) = MONTH(CURDATE()) THEN 1 ELSE 0 END) AS demandes_ce_mois, SUM(CASE WHEN WEEK(d.created_at) = WEEK(CURDATE()) THEN 1 ELSE 0 END) AS demandes_cette_semaine, SUM(CASE WHEN YEAR(d.created_at) = YEAR(CURDATE()) THEN 1 ELSE 0 END) AS demandes_cette_annee FROM demandes d INNER JOIN users u ON d.id_medecin = u.id GROUP BY id_medecin, u.nom;";
+  try {
+    db.query(sql, (err, result) => {
+      res.send({
+        statistiqueDemandes: result,
+      });
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({
+      error: "Erreur lors de requete pour les statistiques",
+    });
+  }
+};
+
 module.exports = {
   create,
   getAll,
@@ -506,4 +579,6 @@ module.exports = {
   deleteMine,
   deleteFromEmail,
   sendCodeConfirmation,
+  getStats,
+  getStatsMed,
 };

@@ -17,9 +17,17 @@ const upload = multer({
   storage,
 });
 router
-  .get("/", auth(["admin", "radiologue", "secretaire"]), demandeController.getAll)
+  .get(
+    "/",
+    auth(["admin", "radiologue", "secretaire"]),
+    demandeController.getAll
+  )
   .get("/mine", auth(["medecin"]), demandeController.getMine)
-  .put("/update", auth(["admin", "radiologue", "secretaire"]), demandeController.changeStatus)
+  .put(
+    "/update",
+    auth(["admin", "radiologue", "secretaire"]),
+    demandeController.changeStatus
+  )
   .post("/sendcode", demandeController.sendCodeConfirmation)
   .delete(
     "/delete/:id",
@@ -27,6 +35,8 @@ router
     demandeController.deleteOne
   )
   .post("/add", upload.single("ordonnance"), demandeController.create)
-  .delete("/delete/email/:token", demandeController.deleteMine);
+  .delete("/delete/email/:token", demandeController.deleteMine)
+  .get("/statistique", auth(["admin"]), demandeController.getStats)
+  .get("/statistique/med", auth(["admin"]), demandeController.getStatsMed);
 
 module.exports = router;

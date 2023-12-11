@@ -35,28 +35,29 @@ io.on("connection", async (socket) => {
 
         for (let i of rows1) {
           const last_message = await new Promise((resolve, reject) => {
-            console.log(socket.handshake.query.id_user);
-            db.query(
-              `SELECT * FROM messages WHERE (id_envoyeur = ? AND id_receveur = ?)  OR (id_envoyeur = ? AND id_receveur = ?) ORDER BY ajout DESC LIMIT 1`,
-              [
-                i.id,
-                parseInt(socket.handshake.query.id_user),
-                parseInt(socket.handshake.query.id_user),
-                i.id,
-              ],
-              (err, rows) => {
-                if (err) {
-                  console.log(err);
-                  reject(err);
-                  return;
+            if (!isNaN(parseInt(socket.handshake.query.id_user))) {
+              db.query(
+                `SELECT * FROM messages WHERE (id_envoyeur = ? AND id_receveur = ?)  OR (id_envoyeur = ? AND id_receveur = ?) ORDER BY ajout DESC LIMIT 1`,
+                [
+                  i.id,
+                  parseInt(socket.handshake.query.id_user),
+                  parseInt(socket.handshake.query.id_user),
+                  i.id,
+                ],
+                (err, rows) => {
+                  if (err) {
+                    console.log(err);
+                    reject(err);
+                    return;
+                  }
+                  if (rows.length === 0) {
+                    resolve(null);
+                    return;
+                  }
+                  resolve(rows[0]);
                 }
-                if (rows.length === 0) {
-                  resolve(null);
-                  return;
-                }
-                resolve(rows[0]);
-              }
-            );
+              );
+            }
           });
           users = users.map((u) => {
             if (u.id == i.id) {
@@ -89,7 +90,7 @@ io.on("connection", async (socket) => {
       if ((await io.to(data.room).fetchSockets()).length === 2) {
         lu = 1;
       }
-      let date =new Date(Date.now()).toString();
+      let date = new Date(Date.now()).toString();
       db.query(
         "INSERT INTO messages (id_envoyeur, id_receveur, message, lu, created_at) VALUES (?, ?, ?, ?, ?)",
         [data.id, data.dest_id, data.message, lu, date],
@@ -196,23 +197,26 @@ cron.schedule("05 00 * * *", () => {
             <div><a href="${process.env.FRONT_URL}">${process.env.FRONT_URL}<a/></div>
             `,
       });
-      db.query("SELECT * FROM demandes WHERE rdv < CURDATE() AND (lieu = '' OR lieu IS NULL) AND rdv IS NOT NULL", async (err, rows) => {
-        if (err) {
-          console.error("Error querying database:", err);
-          return;
-        }
-        if (rows.length > 0) {
-          for(let i of rows){
-            if(i.ordonnance){
-              fs.unlinkSync(
-                path.join(__dirname, `../upload${result[0].ordonnance}`)
-              );
-            }
+      db.query(
+        "SELECT * FROM demandes WHERE rdv < CURDATE() AND (lieu = '' OR lieu IS NULL) AND rdv IS NOT NULL",
+        async (err, rows) => {
+          if (err) {
+            console.error("Error querying database:", err);
+            return;
           }
-        } else {
-          console.log("No entries to delete.");
+          if (rows.length > 0) {
+            for (let i of rows) {
+              if (i.ordonnance) {
+                fs.unlinkSync(
+                  path.join(__dirname, `../upload${result[0].ordonnance}`)
+                );
+              }
+            }
+          } else {
+            console.log("No entries to delete.");
+          }
         }
-      });
+      );
       // Perform deletion after sending emails
       const deleteSQL = `DELETE FROM demandes WHERE rdv < CURDATE() AND (lieu = '' OR lieu IS NULL) AND rdv IS NOT NULL`;
       db.query(deleteSQL, (deleteErr, result) => {

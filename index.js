@@ -34,42 +34,46 @@ io.on("connection", async (socket) => {
         });
 
         for (let i of rows1) {
-          const last_message = await new Promise((resolve, reject) => {
-            if (!isNaN(parseInt(socket.handshake.query.id_user))) {
-              db.query(
-                `SELECT * FROM messages WHERE (id_envoyeur = ? AND id_receveur = ?)  OR (id_envoyeur = ? AND id_receveur = ?) ORDER BY ajout DESC LIMIT 1`,
-                [
-                  i.id,
-                  parseInt(socket.handshake.query.id_user),
-                  parseInt(socket.handshake.query.id_user),
-                  i.id,
-                ],
-                (err, rows) => {
-                  if (err) {
-                    console.log(err);
-                    reject(err);
-                    return;
+          try {
+            const last_message = await new Promise((resolve, reject) => {
+              if (!isNaN(parseInt(socket.handshake.query.id_user))) {
+                db.query(
+                  `SELECT * FROM messages WHERE (id_envoyeur = ? AND id_receveur = ?)  OR (id_envoyeur = ? AND id_receveur = ?) ORDER BY ajout DESC LIMIT 1`,
+                  [
+                    i.id,
+                    parseInt(socket.handshake.query.id_user),
+                    parseInt(socket.handshake.query.id_user),
+                    i.id,
+                  ],
+                  (err, rows) => {
+                    if (err) {
+                      console.log(err);
+                      reject(err);
+                      return;
+                    }
+                    if (rows.length === 0) {
+                      resolve(null);
+                      return;
+                    }
+                    resolve(rows[0]);
                   }
-                  if (rows.length === 0) {
-                    resolve(null);
-                    return;
-                  }
-                  resolve(rows[0]);
-                }
-              );
-            }else{
-              console.log(socket.handshake.query.id_user);
-            }
-          });
-          users = users.map((u) => {
-            if (u.id == i.id) {
-              return {
-                ...u,
-                last_message,
-              };
-            }
-            return u;
-          });
+                );
+              } else {
+                reject("No socket id");
+              }
+            });
+            users = users.map((u) => {
+              if (u.id == i.id) {
+                return {
+                  ...u,
+                  last_message,
+                };
+              }
+              return u;
+            });
+          } catch (error) {
+            console.log(error);
+          }
         }
         socket.emit("online", {
           users,

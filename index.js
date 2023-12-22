@@ -11,10 +11,37 @@ const transporter = require("./mailconfig");
 io.on("connection", async (socket) => {
   io.emit("newdata");
   socket.on("online", async () => {
-    let users = (await io.fetchSockets()).map((s) => ({
-      id: s.handshake.query.id_user,
-      lieu: s.handshake.query.lieu,
-    }));
+    const temp = [];
+    const sockets = await io.fetchSockets();
+    let users = sockets.map((s) => {
+      if (
+        temp.filter(
+          (t) =>
+            t.id === s.handshake.query.id_user &&
+            t.lieu !== s.handshake.query.lieu
+        ).length > 0
+      ) {
+        const item = sockets.find(
+          (i) => i.handshake.query.id_user === s.handshake.query.id_user
+        );
+        if (item) {
+          item.emit("newlocation", {
+            lieu: s.handshake.query.lieu,
+          });
+        }
+        return null;
+      } else {
+        temp.push({
+          id: s.handshake.query.id_user,
+          lieu: s.handshake.query.lieu,
+        });
+        return {
+          id: s.handshake.query.id_user,
+          lieu: s.handshake.query.lieu,
+        };
+      }
+    });
+    users = users.filter((u) => u !== null);
     db.query(
       "SELECT * FROM users WHERE role = 'radiologue' OR role = 'admin' OR role = 'secretaire'",
       async (err, rows1) => {

@@ -37,6 +37,11 @@ router
   .post("/add", upload.single("ordonnance"), demandeController.create)
   .delete("/delete/email/:token", demandeController.deleteMine)
   .get("/statistique", auth(["admin"]), demandeController.getStats)
-  .get("/statistique/med", auth(["admin"]), demandeController.getStatsMed);
+  .get("/statistique/med", auth(["admin"]), demandeController.getStatsMed)
+  .post(
+    "/add/comment",
+    auth(["admin", "radiologue", "secretaire"]),
+    demandeController.addComment
+  );
 
 module.exports = router;

@@ -28,6 +28,7 @@ router
     auth(["admin", "radiologue", "secretaire"]),
     demandeController.changeStatus
   )
+  .put("/update/info", auth(["admin", "radiologue", "secretaire"]), demandeController.updateInfo)
   .post("/sendcode", demandeController.sendCodeConfirmation)
   .delete(
     "/delete/:id",

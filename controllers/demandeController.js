@@ -399,6 +399,35 @@ const changeStatus = async (req, res) => {
     });
   }
 };
+const updateInfo = async (req, res) => {
+  try {
+    const { id, nom_patient, email, tel, datenais } = req.body;
+    if (!nom_patient || !tel || datenais === "") {
+      return res.status(401).json({
+        error: "Veuillez remplir tous les champs",
+      });
+    }
+    db.query(
+      "UPDATE demandes SET nom_patient = ?, email = ?, datenais = ?, tel = ? WHERE id = ?",
+      [nom_patient, email, datenais, tel, id],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            error: "Erreur lors de la modification des informations",
+          });
+        }
+        return res.send({
+          message: "Information modifié avec succès",
+        });
+      }
+    );
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({
+      error: "Erreur lors de la modification des informations",
+    });
+  }
+};
 
 const deleteOne = async (req, res) => {
   try {
@@ -604,21 +633,17 @@ const addComment = async (req, res) => {
 const deleteComment = async (req, res) => {
   try {
     const id = req.params.id;
-    db.query(
-      "DELETE FROM commentaires WHERE id = ?",
-      [id],
-      (err, result) => {
-        if (err) {
-          return res.status(500).json({
-            error: "Erreur lors de la suppression du commentaire",
-          });
-        }
-        io.emit("get demande");
-        res.send({
-          message: "Commentaire supprimé avec succès",
+    db.query("DELETE FROM commentaires WHERE id = ?", [id], (err, result) => {
+      if (err) {
+        return res.status(500).json({
+          error: "Erreur lors de la suppression du commentaire",
         });
       }
-    );
+      io.emit("get demande");
+      res.send({
+        message: "Commentaire supprimé avec succès",
+      });
+    });
   } catch (err) {
     console.log(err);
     res.status(500).send({
@@ -640,4 +665,5 @@ module.exports = {
   getStatsMed,
   addComment,
   deleteComment,
+  updateInfo
 };

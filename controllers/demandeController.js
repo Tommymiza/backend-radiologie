@@ -278,9 +278,10 @@ const sendCodeConfirmation = async (req, res) => {
 const getAll = async (req, res) => {
   try {
     db.query(
-      "SELECT demandes.id, COALESCE(users.role, NULL) AS role_user, demandes.nom_patient, demandes.email AS email, demandes.datenais, demandes.ordonnance, demandes.tel, demandes.created_at, demandes.rdv, COALESCE(users.nom, NULL) AS nom_medecin, types.nom_type, types.nom_sous_type, demandes.lieu,demandes.date_rdv, demandes.commentaire FROM demandes INNER JOIN types ON demandes.id_type = types.id LEFT JOIN users ON demandes.id_medecin = users.id ORDER BY created_at DESC",
+      "SELECT CASE WHEN COUNT(commentaires.id) > 0 THEN JSON_ARRAYAGG(JSON_OBJECT('id', commentaires.id, 'content', commentaires.content, 'created', commentaires.created)) ELSE JSON_ARRAY() END AS comments, demandes.id, COALESCE(users.role, NULL) AS role_user, demandes.nom_patient, demandes.email AS email, demandes.datenais, demandes.ordonnance, demandes.tel, demandes.created_at, demandes.rdv, COALESCE(users.nom, NULL) AS nom_medecin, types.nom_type, types.nom_sous_type, demandes.lieu,demandes.date_rdv FROM demandes INNER JOIN types ON demandes.id_type = types.id LEFT JOIN users ON demandes.id_medecin = users.id LEFT JOIN commentaires ON demandes.id = commentaires.id_demande GROUP BY demandes.id ORDER BY created_at DESC",
       (err, result) => {
         if (err) {
+          console.log(err);
           return res.status(500).json({
             error: "Erreur lors de la récupération des demandes",
           });
@@ -385,7 +386,6 @@ const changeStatus = async (req, res) => {
               }
             }
           );
-          io.emit("get demande");
           res.send({
             message: "Statut modifié avec succès",
           });
@@ -572,26 +572,25 @@ const getStatsMed = async (req, res) => {
 
 const addComment = async (req, res) => {
   try {
-    const { id, commentaire } = req.body;
-    if (!commentaire || commentaire === "") {
+    const { id_demande, content } = req.body;
+    if (!content || content === "") {
       return res.status(401).json({
         error: "Veuillez remplir tous les champs",
       });
     }
     db.query(
-      "UPDATE demandes SET commentaire = ? WHERE id = ?",
-      [commentaire, id],
+      "INSERT INTO commentaires (id_demande, content) VALUES (?, ?)",
+      [id_demande, content],
       (err, result) => {
         if (err) {
           return res.status(500).json({
-            error: "Erreur lors de la modification du commentaire",
-          });
-        } else {
-          io.emit("get demande");
-          res.send({
-            message: "Commentaire modifié avec succès",
+            error: "Erreur lors de l'ajout du commentaire",
           });
         }
+        io.emit("get demande");
+        res.send({
+          message: "Commentaire ajouté avec succès",
+        });
       }
     );
   } catch (err) {
@@ -600,7 +599,33 @@ const addComment = async (req, res) => {
       error: "Erreur lors de la modification du commentaire",
     });
   }
-}
+};
+
+const deleteComment = async (req, res) => {
+  try {
+    const id = req.params.id;
+    db.query(
+      "DELETE FROM commentaires WHERE id = ?",
+      [id],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({
+            error: "Erreur lors de la suppression du commentaire",
+          });
+        }
+        io.emit("get demande");
+        res.send({
+          message: "Commentaire supprimé avec succès",
+        });
+      }
+    );
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({
+      error: "Erreur lors de la suppression du commentaire",
+    });
+  }
+};
 
 module.exports = {
   create,
@@ -613,5 +638,6 @@ module.exports = {
   sendCodeConfirmation,
   getStats,
   getStatsMed,
-  addComment
+  addComment,
+  deleteComment,
 };

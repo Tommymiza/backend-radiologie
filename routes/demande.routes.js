@@ -39,9 +39,10 @@ router
   .get("/statistique", auth(["admin"]), demandeController.getStats)
   .get("/statistique/med", auth(["admin"]), demandeController.getStatsMed)
   .post(
-    "/add/comment",
+    "/comment",
     auth(["admin", "radiologue", "secretaire"]),
     demandeController.addComment
-  );
+  )
+  .delete('/comment/:id', auth(['admin', 'radiologue', 'secretaire']), demandeController.deleteComment)
 
 module.exports = router;
